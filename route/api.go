@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/yusufbagussh/pet_hotel_backend/controller"
 	"github.com/yusufbagussh/pet_hotel_backend/middleware"
@@ -42,6 +43,8 @@ type route struct {
 }
 
 func (r *route) Routes(route *gin.Engine) {
+
+	fmt.Println()
 	//TODO implement me
 	authUp := route.Group("api/auth")
 	{
@@ -109,6 +112,13 @@ func (r *route) Routes(route *gin.Engine) {
 		classRoutes.POST("/add", r.classController.CreateClass)
 		classRoutes.PUT("/update", r.classController.UpdateClass)
 		classRoutes.DELETE("/:id", r.classController.DeleteClass)
+	}
+
+	class := route.Group("api/class", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
+	{
+		class.POST("/add", r.categoryController.CreateCategory)
+		class.PUT("/update", r.categoryController.UpdateCategory)
+		class.DELETE("/:id", r.categoryController.DeleteCategory)
 	}
 
 	categoryRoutes := route.Group("api/category", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
