@@ -62,10 +62,10 @@ func (r *route) Routes(route *gin.Engine) {
 
 	requestRoutes := route.Group("api/request", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
 	{
-		requestRoutes.GET("/", r.requestController.GetAllRequest)
+		requestRoutes.GET("/all", r.requestController.GetAllRequest)
 		requestRoutes.GET("/:id", r.requestController.ShowRequest)
-		requestRoutes.POST("/", r.requestController.CreateRequest)
-		requestRoutes.PUT("/", r.requestController.UpdateRequest)
+		requestRoutes.POST("/add", r.requestController.CreateRequest)
+		requestRoutes.PUT("/update", r.requestController.UpdateRequest)
 		requestRoutes.DELETE("/:id", r.requestController.DeleteRequest)
 	}
 
@@ -79,53 +79,53 @@ func (r *route) Routes(route *gin.Engine) {
 
 	adminRoutes := route.Group("api/admin", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
 	{
-		adminRoutes.GET("/", r.userController.GetAdmin)
+		adminRoutes.GET("/all", r.userController.GetAdmin)
 		adminRoutes.GET("/:id", r.userController.ShowAdmin)
-		adminRoutes.POST("/", r.userController.CreateUser)
-		adminRoutes.PUT("/", r.userController.UpdateAdmin)
+		adminRoutes.POST("/add", r.userController.CreateUser)
+		adminRoutes.PUT("/update", r.userController.UpdateAdmin)
 		adminRoutes.DELETE("/:id", r.userController.DeleteAdmin)
 	}
 
 	hotelRoutes := route.Group("api/hotel", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
 	{
-		hotelRoutes.GET("/", r.hotelController.GetAllHotel)
+		hotelRoutes.GET("/all", r.hotelController.GetAllHotel)
 		hotelRoutes.GET("/:id", r.hotelController.ShowHotel)
-		hotelRoutes.POST("/", r.hotelController.CreateHotel)
+		hotelRoutes.POST("/add", r.hotelController.CreateHotel)
 		hotelRoutes.POST("/admin", r.hotelController.CreateHotelAdmin)
-		hotelRoutes.PUT("/", r.hotelController.UpdateHotel)
+		hotelRoutes.PUT("/update", r.hotelController.UpdateHotel)
 		hotelRoutes.DELETE("/:id", r.hotelController.DeleteHotel)
 	}
 
 	hotelAdminRoutes := route.Group("api/profilehotel", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
-		hotelAdminRoutes.GET("/", r.hotelController.GetProfileHotel)
-		hotelAdminRoutes.PUT("/", r.hotelController.UpdateProfileHotel)
+		hotelAdminRoutes.GET("/profile", r.hotelController.GetProfileHotel)
+		hotelAdminRoutes.PUT("/profile", r.hotelController.UpdateProfileHotel)
 	}
 
 	classRoutes := route.Group("api/class")
 	{
 		classRoutes.GET("/all", r.classController.GetAllClass)
 		classRoutes.GET("/:id", r.classController.ShowClass)
-		classRoutes.POST("/", r.classController.CreateClass)
-		classRoutes.PUT("/", r.classController.UpdateClass)
+		classRoutes.POST("/add", r.classController.CreateClass)
+		classRoutes.PUT("/update", r.classController.UpdateClass)
 		classRoutes.DELETE("/:id", r.classController.DeleteClass)
 	}
 
 	categoryRoutes := route.Group("api/category", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
 	{
-		categoryRoutes.GET("/", r.categoryController.GetAllCategory)
+		categoryRoutes.GET("/all", r.categoryController.GetAllCategory)
 		categoryRoutes.GET("/:id", r.categoryController.ShowCategory)
-		categoryRoutes.POST("/", r.categoryController.CreateCategory)
-		categoryRoutes.PUT("/", r.categoryController.UpdateCategory)
+		categoryRoutes.POST("/add", r.categoryController.CreateCategory)
+		categoryRoutes.PUT("/update", r.categoryController.UpdateCategory)
 		categoryRoutes.DELETE("/:id", r.categoryController.DeleteCategory)
 	}
 
 	speciesRoutes := route.Group("api/species", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
-		speciesRoutes.GET("/", r.speciesController.GetSpecies)
+		speciesRoutes.GET("/all", r.speciesController.GetSpecies)
 		speciesRoutes.GET("/:id", r.speciesController.ShowSpecies)
-		speciesRoutes.POST("/", r.speciesController.CreateSpecies)
-		speciesRoutes.PUT("/", r.speciesController.UpdateSpecies)
+		speciesRoutes.POST("/add", r.speciesController.CreateSpecies)
+		speciesRoutes.PUT("/update", r.speciesController.UpdateSpecies)
 		speciesRoutes.DELETE("/:id", r.speciesController.DeleteSpecies)
 	}
 
