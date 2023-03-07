@@ -17,6 +17,7 @@ type CageDetailController interface {
 	DeleteCageDetail(ctx *gin.Context)
 	ShowCageDetail(ctx *gin.Context)
 	UpdateCageDetail(ctx *gin.Context)
+	UpdateCageDetailStatus(ctx *gin.Context)
 }
 
 type cageDetailController struct {
@@ -30,6 +31,24 @@ func NewCageDetailController(cageDetailService service.CageDetailService, jwtSer
 		cageDetailService: cageDetailService,
 		jwtService:        jwtService,
 	}
+}
+
+func (u *cageDetailController) UpdateCageDetailStatus(ctx *gin.Context) {
+	var updateCageDetailStatus dto.UpdateCageDetailStatus
+	errDTO := ctx.ShouldBind(&updateCageDetailStatus)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	result, errUpdate := u.cageDetailService.UpdateCageDetailStatus(updateCageDetailStatus)
+	if errUpdate != nil {
+		res := helper.BuildErrorResponse("Failed to update status", errUpdate.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helper.BuildResponse(true, "Update status success", result)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u *cageDetailController) CreateCageDetail(ctx *gin.Context) {

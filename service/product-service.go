@@ -14,6 +14,7 @@ type ProductService interface {
 	UpdateProduct(product dto.UpdateProduct) (entity.Product, error)
 	DeleteProduct(productID string, userHotelID string) (error, interface{})
 	ShowProduct(productID string, userHotelID string) (entity.Product, error, interface{})
+	UpdateProductStatus(productStatus dto.UpdateProductStatus) (entity.Product, error)
 }
 
 type productService struct {
@@ -25,6 +26,11 @@ func NewProductService(productRepo repository.ProductRepository) ProductService 
 	return &productService{
 		productRepository: productRepo,
 	}
+}
+
+func (u *productService) UpdateProductStatus(productStatus dto.UpdateProductStatus) (entity.Product, error) {
+	updatedProduct, err := u.productRepository.UpdateProductStatus(productStatus)
+	return updatedProduct, err
 }
 
 func (u *productService) CreateProduct(product dto.CreateProduct) (entity.Product, error) {

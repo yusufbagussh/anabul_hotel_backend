@@ -20,6 +20,7 @@ type RequestService interface {
 	UpdateRequest(request dto.UpdateRequest, ctx *gin.Context) (entity.Request, error, error)
 	DeleteRequest(requestID string) error
 	ShowRequest(requestID string) (entity.Request, error)
+	UpdateRequestStatus(requestStatus dto.UpdateRequestStatus) (entity.Request, error, error)
 }
 
 type requestService struct {
@@ -37,6 +38,67 @@ func NewRequestService(requestRepo repository.RequestRepository, userRepository 
 		hotelRepository:   hotelRepository,
 		checkHelper:       checkHelper,
 	}
+}
+
+func (u *requestService) UpdateRequestStatus(requestStatus dto.UpdateRequestStatus) (entity.Request, error, error) {
+	var hotelEntity entity.Hotel
+	var userEntity entity.User
+	updatedRequest, errUpdate := u.requestRepository.UpdateRequestStatus(requestStatus)
+	if errUpdate != nil {
+		//return entity.Request{}, errUpdate, utils.EmailData{}
+		return entity.Request{}, errUpdate, nil
+	}
+	fmt.Println(updatedRequest)
+	if updatedRequest.Status == "Terima" {
+		hotelEntity.Name = updatedRequest.HotelName
+		hotelEntity.Phone = updatedRequest.HotelPhone
+		hotelEntity.Email = updatedRequest.HotelEmail
+		hotelEntity.NPWP = updatedRequest.NPWP
+		hotelEntity.Document = updatedRequest.Document
+
+		hotel, errHotel := u.hotelRepository.InsertHotel(hotelEntity)
+		if errHotel != nil {
+			//return updatedRequest, errHotel, utils.EmailData{}
+			return updatedRequest, errHotel, nil
+		}
+
+		password := utils.RandomPassword(8, 2, 2, 2)
+
+		userEntity.HotelID = hotel.IDHotel
+		userEntity.Name = updatedRequest.AdminName
+		userEntity.Password = password
+		userEntity.Email = updatedRequest.HotelEmail
+		userEntity.NIK = updatedRequest.NIK
+		userEntity.KTP = updatedRequest.KTP
+		userEntity.Selfie = updatedRequest.Selfie
+		userEntity.Role = "Admin"
+		userEntity.Phone = updatedRequest.AdminPhone
+		userEntity.Verified = true
+
+		_, errUser := u.userRepository.InsertUser(userEntity)
+		if errUser != nil {
+			//return updatedRequest, errUser, utils.EmailData{}
+			return updatedRequest, errUser, nil
+		}
+
+		//Send Email v1
+		data := utils.Account{
+			Email:    userEntity.Email,
+			Password: userEntity.Password,
+		}
+		errSend := utils.SendEmailAccept(userEntity.Email, data)
+		if errSend != nil {
+			return entity.Request{}, nil, errSend
+		}
+
+	} else if updatedRequest.Status == "Tolak" {
+		errSend := utils.SendEmailReject(updatedRequest.HotelEmail)
+		if errSend != nil {
+			return entity.Request{}, nil, errSend
+		}
+	}
+
+	return updatedRequest, errUpdate, nil
 }
 
 func (u *requestService) CreateRequest(request dto.CreateRequest, ctx *gin.Context) (entity.Request, error) {
@@ -78,7 +140,7 @@ func (u *requestService) CreateRequest(request dto.CreateRequest, ctx *gin.Conte
 		newKTP := "KTP" + "_" + request.HotelName + extension
 		requestEntity.KTP = newKTP
 
-		err = ctx.SaveUploadedFile(request.KTP, "uploads/documents/"+newKTP)
+		err = ctx.SaveUploadedFile(request.KTP, "uploads/documents/"+request.HotelName+"/"+newKTP)
 		if err != nil {
 			return requestEntity, err
 		}
@@ -88,7 +150,7 @@ func (u *requestService) CreateRequest(request dto.CreateRequest, ctx *gin.Conte
 		newSelfie := "Selfie" + "_" + request.HotelName + extension
 		requestEntity.Selfie = newSelfie
 
-		err = ctx.SaveUploadedFile(request.Selfie, "uploads/documents/"+newSelfie)
+		err = ctx.SaveUploadedFile(request.Selfie, "uploads/documents/"+request.HotelName+"/"+newSelfie)
 		if err != nil {
 			return requestEntity, err
 		}
@@ -124,14 +186,14 @@ func (u *requestService) UpdateRequest(request dto.UpdateRequest, ctx *gin.Conte
 		newDocument := "Document_" + request.HotelName + extension
 		requestEntity.Document = newDocument
 
-		err = ctx.SaveUploadedFile(request.Document, "uploads/documents/"+requestByID.HotelName+newDocument)
+		err = ctx.SaveUploadedFile(request.Document, "uploads/documents/"+requestByID.HotelName+"/"+newDocument)
 		if err != nil {
 			//return requestEntity, err, utils.EmailData{}
 			return requestEntity, err, nil
 		} else {
 			//requestByID, _ := u.requestRepository.FindRequestByID(request.IDRequest)
 			if requestByID.Document != "" {
-				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + requestByID.Document)
+				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + "/" + requestByID.Document)
 				if errRemove != nil {
 					return requestEntity, errRemove, nil
 				}
@@ -144,14 +206,14 @@ func (u *requestService) UpdateRequest(request dto.UpdateRequest, ctx *gin.Conte
 		newNPWP := "NPWP_" + request.HotelName + extension
 		requestEntity.NPWP = newNPWP
 
-		err = ctx.SaveUploadedFile(request.NPWP, "uploads/documents/"+requestByID.HotelName+newNPWP)
+		err = ctx.SaveUploadedFile(request.NPWP, "uploads/documents/"+requestByID.HotelName+"/"+newNPWP)
 		if err != nil {
 			//return requestEntity, err, utils.EmailData{}
 			return requestEntity, err, nil
 		} else {
 			//requestByID, _ := u.requestRepository.FindRequestByID(request.IDRequest)
 			if requestByID.NPWP != "" {
-				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + requestByID.NPWP)
+				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + "/" + requestByID.NPWP)
 				if errRemove != nil {
 					//return requestEntity, errRemove, utils.EmailData{}
 					return requestEntity, errRemove, nil
@@ -165,14 +227,14 @@ func (u *requestService) UpdateRequest(request dto.UpdateRequest, ctx *gin.Conte
 		newKTP := "KTP_" + request.HotelName + extension
 		requestEntity.KTP = newKTP
 
-		err = ctx.SaveUploadedFile(request.KTP, "uploads/documents/"+requestByID.HotelName+newKTP)
+		err = ctx.SaveUploadedFile(request.KTP, "uploads/documents/"+requestByID.HotelName+"/"+newKTP)
 		if err != nil {
 			//return requestEntity, err, utils.EmailData{}
 			return requestEntity, err, nil
 		} else {
 			//requestByID, _ := u.requestRepository.FindRequestByID(request.IDRequest)
 			if requestByID.KTP != "" {
-				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + requestByID.KTP)
+				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + "/" + requestByID.KTP)
 				if errRemove != nil {
 					//return requestEntity, errRemove, utils.EmailData{}
 					return requestEntity, errRemove, nil
@@ -186,14 +248,14 @@ func (u *requestService) UpdateRequest(request dto.UpdateRequest, ctx *gin.Conte
 		newSelfie := "Selfie_" + request.HotelName + extension
 		requestEntity.Selfie = newSelfie
 
-		err = ctx.SaveUploadedFile(request.Selfie, "uploads/documents/"+requestByID.HotelName+newSelfie)
+		err = ctx.SaveUploadedFile(request.Selfie, "uploads/documents/"+requestByID.HotelName+"/"+newSelfie)
 		if err != nil {
 			return requestEntity, err, nil
 			//return requestEntity, err, utils.EmailData{}
 		} else {
 			//requestByID, _ := u.requestRepository.FindRequestByID(request.IDRequest)
 			if requestByID.Selfie != "" {
-				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + requestByID.Selfie)
+				errRemove := os.Remove("./uploads/documents/" + requestByID.HotelName + "/" + requestByID.Selfie)
 				if errRemove != nil {
 					return requestEntity, errRemove, nil
 					//return requestEntity, errRemove, utils.EmailData{}
@@ -241,7 +303,7 @@ func (u *requestService) UpdateRequest(request dto.UpdateRequest, ctx *gin.Conte
 		userEntity.Selfie = updatedRequest.Selfie
 		userEntity.Role = "Admin"
 		userEntity.Phone = updatedRequest.AdminPhone
-		userEntity.Status = true
+		userEntity.Verified = true
 
 		_, errUser := u.userRepository.InsertUser(userEntity)
 		if errUser != nil {

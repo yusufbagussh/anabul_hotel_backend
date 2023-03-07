@@ -1,8 +1,12 @@
 package service
 
 import (
+	"context"
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
 	"fmt"
 	"github.com/mashingan/smapping"
+	"github.com/yusufbagussh/pet_hotel_backend/config"
 	"github.com/yusufbagussh/pet_hotel_backend/dto"
 	"github.com/yusufbagussh/pet_hotel_backend/entity"
 	"github.com/yusufbagussh/pet_hotel_backend/repository"
@@ -27,6 +31,9 @@ type ReservationService interface {
 	UpdateReservation(reservation dto.UpdateReservation) (entity.Reservation, error)
 	DeleteReservation(reservationID string, userHotelID string) (error, interface{})
 	ShowReservation(reservationID string, userHotelID string) (entity.Reservation, error, interface{})
+	UpdatePaymentStatus(paymentStatus dto.UpdatePaymentStatus) (entity.Reservation, error)
+	UpdateReservationStatus(paymentStatus dto.UpdateReservationStatus) (entity.Reservation, error)
+	UpdateCheckInStatus(paymentStatus dto.UpdateCheckInStatus) (entity.Reservation, error)
 }
 
 type reservationService struct {
@@ -38,6 +45,133 @@ func NewReservationService(reservationRepo repository.ReservationRepository) Res
 	return &reservationService{
 		reservationRepository: reservationRepo,
 	}
+}
+
+func (u *reservationService) UpdatePaymentStatus(paymentStatus dto.UpdatePaymentStatus) (entity.Reservation, error) {
+	updatedReservation, err := u.reservationRepository.UpdatePaymentStatus(paymentStatus)
+	if err != nil {
+		return entity.Reservation{}, err
+	}
+
+	var createNotification entity.ReservationNotification
+	createNotification.ReservationID = updatedReservation.IDReservation
+	createNotification.Title = "Notifikasi Pembayaran"
+	createNotification.Description = "Terimakasih anda melakukan pembayaran reservasi pet hotel blabla"
+	createNotification.UserID = updatedReservation.UserID
+
+	notificationData, errCreate := u.reservationRepository.CreateNotification(createNotification)
+	if errCreate != nil {
+		return entity.Reservation{}, err
+	}
+
+	app, _, _ := config.SetupFirebase()
+	errSend := sendNotificationReservationStatus(app, notificationData)
+
+	if errSend != nil {
+		return entity.Reservation{}, errSend
+	}
+
+	return updatedReservation, err
+}
+
+func (u *reservationService) UpdateReservationStatus(reservationStatus dto.UpdateReservationStatus) (entity.Reservation, error) {
+	updatedReservation, err := u.reservationRepository.UpdateReservationStatus(reservationStatus)
+	if err != nil {
+		return entity.Reservation{}, err
+	}
+
+	var createNotification entity.ReservationNotification
+	createNotification.ReservationID = updatedReservation.IDReservation
+	createNotification.Title = "Notifikasi Reservasi"
+	if updatedReservation.ReservationStatus == "Proses" {
+		createNotification.Description = "Reservasi anda sedang diproses dan akan dilakukan validasi oleh pihal admin, silahkan mohon tunggu sebentar notifikasi dari kami"
+	} else if updatedReservation.ReservationStatus == "Diterima" {
+		createNotification.Description = "Reservasi anda sudah kami terima, anda sudah bisa membawa hewan peliharaan anda ke tempat penitipan kami"
+	} else if updatedReservation.ReservationStatus == "Ditolak" {
+		createNotification.Description = "Mohon maaf reservasi anda kami tolak, karena tidak memenuhi syarat dan peraturan dari tempat penitipan kami"
+	} else {
+		createNotification.Description = "Anda telah membatalkan layanan reservasi."
+	}
+	createNotification.UserID = updatedReservation.UserID
+
+	notificationData, errCreate := u.reservationRepository.CreateNotification(createNotification)
+	if errCreate != nil {
+		return entity.Reservation{}, err
+	}
+
+	app, _, _ := config.SetupFirebase()
+	errSend := sendNotificationReservationStatus(app, notificationData)
+
+	if errSend != nil {
+		return entity.Reservation{}, errSend
+	}
+
+	return updatedReservation, err
+}
+
+func (u *reservationService) UpdateCheckInStatus(checkInStatus dto.UpdateCheckInStatus) (entity.Reservation, error) {
+	updatedReservation, err := u.reservationRepository.UpdateCheckInStatus(checkInStatus)
+	if err != nil {
+		return entity.Reservation{}, err
+	}
+
+	var createNotification entity.ReservationNotification
+	createNotification.ReservationID = updatedReservation.IDReservation
+	createNotification.Title = "Notifikasi Penitipan"
+	if updatedReservation.CheckInStatus == "Masuk" {
+		createNotification.Description = "Hewan peliharaan kesayangan Anda sudah masuk ke tempat penitipan hewan"
+	} else {
+		createNotification.Description = "Hewan peliharaan kesayangan Anda sudah keluar dari tempat penitipan hewan. Terima kasih sudah menggunakan layanan dari kami"
+	}
+	createNotification.UserID = updatedReservation.UserID
+
+	notificationData, errCreate := u.reservationRepository.CreateNotification(createNotification)
+	if errCreate != nil {
+		return entity.Reservation{}, err
+	}
+
+	app, _, _ := config.SetupFirebase()
+	errSend := sendNotificationReservationStatus(app, notificationData)
+
+	if errSend != nil {
+		return entity.Reservation{}, errSend
+	}
+
+	return updatedReservation, err
+}
+
+func sendNotificationReservationStatus(app *firebase.App, notificationData entity.ReservationNotification) error {
+	ctx := context.Background()
+	client, err := app.Messaging(ctx)
+	if err != nil {
+		//log.Fatalf("error getting Messaging client: %v\n", err)
+		return err
+	}
+
+	fmt.Println("Tes 1")
+
+	registrationToken := "dVib4muX6vS4vk3SUDKpRG:APA91bGfNG2lQSubB6o5v9D0Aj5ClnhW3DEgPbZ0fifj-Yh0hJ_U40OsUGtp6Zd6jM_YDYwOu1Zx7ZTGKAKIvA9aoZU_YzZMq1gw_EoI-UyiPitpHHC4Z6Fl8hSFxNXAzqSm9QG1KQHz"
+
+	message := &messaging.Message{
+		Notification: &messaging.Notification{
+			Title: notificationData.Title,
+			Body:  notificationData.Description,
+		},
+		Token: registrationToken,
+	}
+
+	fmt.Println("Tes 2")
+
+	response, errSend := client.Send(ctx, message)
+	if errSend != nil {
+		//log.Fatalln(err)
+		return errSend
+	}
+
+	fmt.Println("Tes 3")
+
+	fmt.Println("Successfully sent message:", response)
+	return nil
 }
 
 func (u *reservationService) CreateReservation(reservation dto.CreateReservation, userID string) (interface{}, error) {

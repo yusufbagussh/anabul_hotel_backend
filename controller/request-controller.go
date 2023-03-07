@@ -17,6 +17,7 @@ type RequestController interface {
 	DeleteRequest(ctx *gin.Context)
 	ShowRequest(ctx *gin.Context)
 	UpdateRequest(ctx *gin.Context)
+	UpdateRequestStatus(ctx *gin.Context)
 }
 
 type requestController struct {
@@ -30,6 +31,29 @@ func NewRequestController(requestService service.RequestService, jwtService serv
 		requestService: requestService,
 		jwtService:     jwtService,
 	}
+}
+
+func (u *requestController) UpdateRequestStatus(ctx *gin.Context) {
+	var updateRequestStatus dto.UpdateRequestStatus
+	errDTO := ctx.ShouldBind(&updateRequestStatus)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	result, errUpdate, errSend := u.requestService.UpdateRequestStatus(updateRequestStatus)
+	if errUpdate != nil {
+		res := helper.BuildErrorResponse("Failed to update status", errUpdate.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	if errSend != nil {
+		res := helper.BuildErrorResponse("Failed to send Email", errSend.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helper.BuildResponse(true, "Update status success", result)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u *requestController) CreateRequest(ctx *gin.Context) {

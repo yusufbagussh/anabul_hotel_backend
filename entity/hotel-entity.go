@@ -27,6 +27,7 @@ type Hotel struct {
 	Requirement string  `gorm:"default:null" json:"requirement"`
 	Regulation  string  `gorm:"default:null" json:"regulation"`
 	Base
+	User     *User     `json:"user,omitempty"`
 	Province *Province `gorm:"foreignkey:ProvinceID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"province,omitempty"`
 	City     *City     `gorm:"foreignkey:CityID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"city,omitempty"`
 	District *District `gorm:"foreignkey:DistrictID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"district,omitempty"`

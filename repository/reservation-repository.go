@@ -20,11 +20,39 @@ type ReservationRepository interface {
 	FindProductByID(productID string) (entity.Product, error)
 	FindServiceDetailByID(serviceID string, groupID string) (entity.ServiceDetail, error)
 	FindCageDetailByID(cageDetailID string) (entity.CageDetail, error)
+	UpdatePaymentStatus(paymentStatus dto.UpdatePaymentStatus) (entity.Reservation, error)
+	UpdateReservationStatus(reservationStatus dto.UpdateReservationStatus) (entity.Reservation, error)
+	UpdateCheckInStatus(checkinStatus dto.UpdateCheckInStatus) (entity.Reservation, error)
+	CreateNotification(notification entity.ReservationNotification) (entity.ReservationNotification, error)
 }
 
 // reservationConnection adalah func untuk melakukan query data ke tabel reservation
 type reservationConnection struct {
 	connection *gorm.DB
+}
+
+func (db *reservationConnection) CreateNotification(notification entity.ReservationNotification) (entity.ReservationNotification, error) {
+	err := db.connection.Save(&notification).Error
+	return notification, err
+}
+
+func (db *reservationConnection) UpdatePaymentStatus(paymentStatus dto.UpdatePaymentStatus) (entity.Reservation, error) {
+	var reservation entity.Reservation
+	err := db.connection.Model(&reservation).Where("id_reservation = ?", paymentStatus.IDReservation).Updates(&entity.Reservation{PaymentStatus: paymentStatus.PaymentStatus}).Error
+	db.connection.Find(&reservation)
+	return reservation, err
+}
+func (db *reservationConnection) UpdateReservationStatus(paymentStatus dto.UpdateReservationStatus) (entity.Reservation, error) {
+	var reservation entity.Reservation
+	err := db.connection.Model(&reservation).Where("reservation_id = ?", paymentStatus.IDReservation).Updates(&entity.Reservation{ReservationStatus: reservation.ReservationStatus}).Error
+	db.connection.Find(&reservation)
+	return reservation, err
+}
+func (db *reservationConnection) UpdateCheckInStatus(paymentStatus dto.UpdateCheckInStatus) (entity.Reservation, error) {
+	var reservation entity.Reservation
+	err := db.connection.Model(&reservation).Where("reservation_id = ?", paymentStatus.IDReservation).Updates(&entity.Reservation{CheckInStatus: reservation.CheckInStatus}).Error
+	db.connection.Find(&reservation)
+	return reservation, err
 }
 
 func (db *reservationConnection) FindServiceDetailByID(serviceID string, groupID string) (entity.ServiceDetail, error) {

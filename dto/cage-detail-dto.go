@@ -17,3 +17,8 @@ type UpdateCageDetail struct {
 	Status         string  `json:"status" form:"status"`
 	HotelID        string  `json:"hotel_id" form:"hotel_id" binding:"required"`
 }
+
+type UpdateCageDetailStatus struct {
+	IDCageDetail string `json:"id_cage_category_type" binding:"required"`
+	Status       string `json:"status" form:"status" binding:"required"`
+}

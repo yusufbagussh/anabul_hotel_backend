@@ -199,7 +199,7 @@ func (db *userConnection) UpdateUser(user entity.User) (entity.User, error) {
 // VerifyCredential adalah func untuk melakukan pengecekan user berdasarkan email dan password
 func (db *userConnection) VerifyCredential(email string) interface{} {
 	var user entity.User
-	res := db.connection.Where("email = ?", email).Take(&user)
+	res := db.connection.Where("email = ?", email).Preload("Hotel").Take(&user)
 	if res.Error == nil {
 		return user
 	}

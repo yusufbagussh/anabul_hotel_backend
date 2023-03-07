@@ -17,19 +17,38 @@ type ProductController interface {
 	DeleteProduct(ctx *gin.Context)
 	ShowProduct(ctx *gin.Context)
 	UpdateProduct(ctx *gin.Context)
+	UpdateProductStatus(ctx *gin.Context)
 }
 
 type productController struct {
 	productService service.ProductService
-	jwtService   service.JWTService
+	jwtService     service.JWTService
 }
 
 // NewProductController is creating anew instance of ProductControlller
 func NewProductController(productService service.ProductService, jwtService service.JWTService) ProductController {
 	return &productController{
 		productService: productService,
-		jwtService:   jwtService,
+		jwtService:     jwtService,
 	}
+}
+
+func (u *productController) UpdateProductStatus(ctx *gin.Context) {
+	var updateProductStatus dto.UpdateProductStatus
+	errDTO := ctx.ShouldBind(&updateProductStatus)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	result, errUpdate := u.productService.UpdateProductStatus(updateProductStatus)
+	if errUpdate != nil {
+		res := helper.BuildErrorResponse("Failed to update status", errUpdate.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helper.BuildResponse(true, "Update status success", result)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u *productController) CreateProduct(ctx *gin.Context) {

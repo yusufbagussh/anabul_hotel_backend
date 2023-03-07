@@ -17,3 +17,7 @@ type UpdateProduct struct {
 	HotelID    string  `json:"hotel_id" form:"hotel_id" binding:"required"`
 	CategoryID string  `json:"category_id" form:"category_id" binding:"required"`
 }
+type UpdateProductStatus struct {
+	IDProduct string `json:"id_product" form:"id_product" binding:"required"`
+	Status    string `json:"status" form:"status" binding:"required"`
+}

@@ -99,6 +99,9 @@ func (m migrationConnection) DropTable() {
 	if m.db.Migrator().HasTable(&entity.ReservationConditionAlbum{}) {
 		m.db.Migrator().DropTable(&entity.ReservationConditionAlbum{})
 	}
+	if m.db.Migrator().HasTable(&entity.ReservationNotification{}) {
+		m.db.Migrator().DropTable(&entity.ReservationNotification{})
+	}
 	if m.db.Migrator().HasTable(&entity.Rate{}) {
 		m.db.Migrator().DropTable(&entity.Rate{})
 	}
@@ -136,6 +139,7 @@ func (m migrationConnection) Migration() {
 		entity.ReservationInventory{},
 		entity.ReservationCondition{},
 		entity.ReservationConditionAlbum{},
+		entity.ReservationNotification{},
 		entity.Rate{},
 		entity.Response{},
 	)

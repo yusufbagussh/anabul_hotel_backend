@@ -30,3 +30,8 @@ type UpdateRequest struct {
 	Selfie     *multipart.FileHeader `json:"selfie" form:"selfie"`
 	Status     string                `json:"status" form:"status"`
 }
+
+type UpdateRequestStatus struct {
+	IDRequest string `json:"id_request" form:"id_request" binding:"required"`
+	Status    string `json:"status" form:"status" binding:"request"`
+}

@@ -16,6 +16,7 @@ type ProductRepository interface {
 	UpdateProduct(product entity.Product) (entity.Product, error)
 	FindProductByID(productID string) (entity.Product, error)
 	DeleteProduct(product entity.Product) error
+	UpdateProductStatus(productStatus dto.UpdateProductStatus) (entity.Product, error)
 }
 
 // productConnection adalah func untuk melakukan query data ke tabel product
@@ -26,6 +27,13 @@ type productConnection struct {
 func (db *productConnection) DeleteProduct(product entity.Product) error {
 	err := db.connection.Where("id_product = ?", product.IDProduct).Delete(&product).Error
 	return err
+}
+
+func (db *productConnection) UpdateProductStatus(productStatus dto.UpdateProductStatus) (entity.Product, error) {
+	var product entity.Product
+	err := db.connection.Model(&product).Where("id_reservation = ?", productStatus.IDProduct).Updates(&entity.Product{Status: productStatus.Status}).Error
+	db.connection.Find(&product)
+	return product, err
 }
 
 func (db *productConnection) GetAllProduct(hotelID string, filterPagination dto.FilterPagination) ([]entity.Product, dto.Pagination, error) {

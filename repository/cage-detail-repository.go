@@ -16,6 +16,7 @@ type CageDetailRepository interface {
 	UpdateCageDetail(cageDetail entity.CageDetail) (entity.CageDetail, error)
 	FindCageDetailByID(cageDetailID string) (entity.CageDetail, error)
 	DeleteCageDetail(cageDetail entity.CageDetail) error
+	UpdateCageDetailStatus(productStatus dto.UpdateCageDetailStatus) (entity.CageDetail, error)
 }
 
 // cageDetailConnection adalah func untuk melakukan query data ke tabel cageDetail
@@ -26,6 +27,13 @@ type cageDetailConnection struct {
 func (db *cageDetailConnection) DeleteCageDetail(cageDetail entity.CageDetail) error {
 	err := db.connection.Where("id_cageDetail = ?", cageDetail.IDCageDetail).Delete(&cageDetail).Error
 	return err
+}
+
+func (db *cageDetailConnection) UpdateCageDetailStatus(productStatus dto.UpdateCageDetailStatus) (entity.CageDetail, error) {
+	var cageDetail entity.CageDetail
+	err := db.connection.Model(&cageDetail).Where("id_reservation = ?", productStatus.IDCageDetail).Updates(&entity.CageDetail{Status: productStatus.Status}).Error
+	db.connection.Find(&cageDetail)
+	return cageDetail, err
 }
 
 func (db *cageDetailConnection) GetAllCageDetail(hotelID string, filterPagination dto.FilterPagination) ([]entity.CageDetail, dto.Pagination, error) {

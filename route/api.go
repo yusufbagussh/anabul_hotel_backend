@@ -69,6 +69,7 @@ func (r *route) Routes(route *gin.Engine) {
 		requestRoutes.GET("/:id", r.requestController.ShowRequest)
 		requestRoutes.POST("/add", r.requestController.CreateRequest)
 		requestRoutes.PUT("/update", r.requestController.UpdateRequest)
+		requestRoutes.PUT("/status", r.requestController.UpdateRequestStatus)
 		requestRoutes.DELETE("/:id", r.requestController.DeleteRequest)
 	}
 
@@ -109,16 +110,16 @@ func (r *route) Routes(route *gin.Engine) {
 	{
 		classRoutes.GET("/all", r.classController.GetAllClass)
 		classRoutes.GET("/:id", r.classController.ShowClass)
-		classRoutes.POST("/add", r.classController.CreateClass)
-		classRoutes.PUT("/update", r.classController.UpdateClass)
-		classRoutes.DELETE("/:id", r.classController.DeleteClass)
+		//classRoutes.POST("/add", r.classController.CreateClass)
+		//classRoutes.PUT("/update", r.classController.UpdateClass)
+		//classRoutes.DELETE("/:id", r.classController.DeleteClass)
 	}
 
 	class := route.Group("api/class", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
 	{
-		class.POST("/add", r.categoryController.CreateCategory)
-		class.PUT("/update", r.categoryController.UpdateCategory)
-		class.DELETE("/:id", r.categoryController.DeleteCategory)
+		class.POST("/add", r.classController.CreateClass)
+		class.PUT("/update", r.classController.UpdateClass)
+		class.DELETE("/:id", r.classController.DeleteClass)
 	}
 
 	categoryRoutes := route.Group("api/category", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Super Admin"))
@@ -189,7 +190,7 @@ func (r *route) Routes(route *gin.Engine) {
 		cageDetailRoutes.GET("/", r.cageDetailController.GetAllCageDetail)
 		cageDetailRoutes.GET("/:id", r.cageDetailController.ShowCageDetail)
 		cageDetailRoutes.POST("/", r.cageDetailController.CreateCageDetail)
-		cageDetailRoutes.PUT("/", r.cageDetailController.UpdateCageDetail)
+		cageDetailRoutes.PUT("/cageDetailStatus", r.cageDetailController.UpdateCageDetailStatus)
 		cageDetailRoutes.DELETE("/:id", r.cageDetailController.DeleteCageDetail)
 	}
 
@@ -235,12 +236,16 @@ func (r *route) Routes(route *gin.Engine) {
 		productRoutes.GET("/:id", r.productController.ShowProduct)
 		productRoutes.POST("/", r.productController.CreateProduct)
 		productRoutes.PUT("/", r.productController.UpdateProduct)
+		productRoutes.PUT("/productStatus", r.productController.UpdateProductStatus)
 		productRoutes.DELETE("/:id", r.productController.DeleteProduct)
 	}
 
 	reservationRoutes := route.Group("api/reservation", middleware.AuthorizeJWT(r.jwtService, r.userService, r.redisService))
 	{
 		reservationRoutes.GET("/", r.reservationController.GetAllReservation)
+		reservationRoutes.PUT("/paymentStatus", r.reservationController.UpdatePaymentStatus)
+		reservationRoutes.PUT("/reservationStatus", r.reservationController.UpdateReservationStatus)
+		reservationRoutes.PUT("/checkinStatus", r.reservationController.UpdateCheckInStatus)
 		reservationRoutes.GET("/:id", r.reservationController.ShowReservation)
 		reservationRoutes.POST("/", r.reservationController.CreateReservation)
 		reservationRoutes.PUT("/", r.reservationController.UpdateReservation)

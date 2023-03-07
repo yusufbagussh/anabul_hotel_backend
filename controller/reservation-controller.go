@@ -17,6 +17,9 @@ type ReservationController interface {
 	DeleteReservation(ctx *gin.Context)
 	ShowReservation(ctx *gin.Context)
 	UpdateReservation(ctx *gin.Context)
+	UpdatePaymentStatus(ctx *gin.Context)
+	UpdateReservationStatus(ctx *gin.Context)
+	UpdateCheckInStatus(ctx *gin.Context)
 }
 
 type reservationController struct {
@@ -30,6 +33,59 @@ func NewReservationController(reservationService service.ReservationService, jwt
 		reservationService: reservationService,
 		jwtService:         jwtService,
 	}
+}
+
+func (u *reservationController) UpdateCheckInStatus(ctx *gin.Context) {
+	var updateCheckInStatus dto.UpdateCheckInStatus
+	errDTO := ctx.ShouldBind(&updateCheckInStatus)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	result, errCreate := u.reservationService.UpdateCheckInStatus(updateCheckInStatus)
+	if errCreate != nil {
+		res := helper.BuildErrorResponse("Failed to update status", errCreate.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helper.BuildResponse(true, "Update status success", result)
+	ctx.JSON(http.StatusOK, res)
+}
+func (u *reservationController) UpdateReservationStatus(ctx *gin.Context) {
+	var updateReservationStatus dto.UpdateReservationStatus
+	errDTO := ctx.ShouldBind(&updateReservationStatus)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	result, errCreate := u.reservationService.UpdateReservationStatus(updateReservationStatus)
+	if errCreate != nil {
+		res := helper.BuildErrorResponse("Failed to update status", errCreate.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helper.BuildResponse(true, "Update status success", result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (u *reservationController) UpdatePaymentStatus(ctx *gin.Context) {
+	var updatePaymentStatus dto.UpdatePaymentStatus
+	errDTO := ctx.ShouldBind(&updatePaymentStatus)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	result, errCreate := u.reservationService.UpdatePaymentStatus(updatePaymentStatus)
+	if errCreate != nil {
+		res := helper.BuildErrorResponse("Failed to update status", errCreate.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helper.BuildResponse(true, "Update status success", result)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u *reservationController) CreateReservation(ctx *gin.Context) {

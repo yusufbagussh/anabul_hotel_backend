@@ -6,6 +6,7 @@ import (
 	"github.com/yusufbagussh/pet_hotel_backend/entity"
 	"gorm.io/gorm"
 	"math"
+	"strings"
 )
 
 // RequestRepository is contract what requestRepository can do to db
@@ -15,6 +16,7 @@ type RequestRepository interface {
 	UpdateRequest(request entity.Request) (entity.Request, error)
 	FindRequestByID(requestID string) (entity.Request, error)
 	DeleteRequest(request entity.Request) error
+	UpdateRequestStatus(productStatus dto.UpdateRequestStatus) (entity.Request, error)
 }
 
 // requestConnection adalah func untuk melakukan query data ke tabel request
@@ -27,37 +29,51 @@ func (db *requestConnection) DeleteRequest(request entity.Request) error {
 	return err
 }
 
+func (db *requestConnection) UpdateRequestStatus(productStatus dto.UpdateRequestStatus) (entity.Request, error) {
+	var request entity.Request
+	err := db.connection.Model(&request).Where("id_reservation = ?", productStatus.IDRequest).Updates(&entity.Request{Status: productStatus.Status}).Error
+	db.connection.Find(&request)
+	return request, err
+}
+
 func (db *requestConnection) GetAllRequest(filterPagination dto.FilterPagination) ([]entity.Request, dto.Pagination, error) {
-	var requestes []entity.Request
 	search := filterPagination.Search
 	sortBy := filterPagination.SortBy
 	orderBy := filterPagination.OrderBy
-	perPage := filterPagination.PerPage
-	page := filterPagination.Page
-	if sortBy == "" {
-		sortBy = "created_at"
-	}
-	if orderBy == "" {
-		orderBy = "desc"
-	}
+	perPage := int(filterPagination.PerPage)
+	page := int(filterPagination.Page)
+
 	if page == 0 {
 		page = 1
 	}
 	if perPage == 0 {
 		perPage = 10
 	}
-
-	query := "SELECT * FROM requestes"
-	if search != "" {
-		query = fmt.Sprintf("%s WHERE name LIKE '%%%s%%'", query, search)
-	}
-	query = fmt.Sprintf("%s ORDER BY %s %s", query, sortBy, orderBy)
-
 	var total int64
 
-	db.connection.Raw(query).Count(&total)
-	query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, perPage, (page-1)*perPage)
-	err := db.connection.Raw(query).Scan(&requestes).Error
+	var requests []entity.Request
+	query := db.connection
+
+	if search != "" {
+		keyword := strings.ToLower(search)
+		if keyword != "" {
+			query = query.Where("LOWER(request.hotel_name) LIKE ?", fmt.Sprintf("%%%s%%", keyword)).
+				Or("LOWER(request.admin_name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+		}
+	}
+
+	listSortBy := []string{"hotel_name, admin_name"}
+	listSortOrder := []string{"desc", "asc"}
+
+	if sortBy != "" && contains(listSortBy, sortBy) == true && orderBy != "" && contains(listSortOrder, orderBy) {
+		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
+	} else {
+		sortBy = "created_at"
+		orderBy = "desc"
+		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
+	}
+
+	err := query.Limit(perPage).Offset((page - 1) * perPage).Find(&requests).Count(&total).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -68,7 +84,48 @@ func (db *requestConnection) GetAllRequest(filterPagination dto.FilterPagination
 		TotalPage: uint(math.Ceil(totalPage)),
 	}
 
-	return requestes, pagination, err
+	return requests, pagination, err
+	//var requestes []entity.Request
+	//search := filterPagination.Search
+	//sortBy := filterPagination.SortBy
+	//orderBy := filterPagination.OrderBy
+	//perPage := filterPagination.PerPage
+	//page := filterPagination.Page
+	//if sortBy == "" {
+	//	sortBy = "created_at"
+	//}
+	//if orderBy == "" {
+	//	orderBy = "desc"
+	//}
+	//if page == 0 {
+	//	page = 1
+	//}
+	//if perPage == 0 {
+	//	perPage = 10
+	//}
+	//
+	//query := "SELECT * FROM requestes"
+	//if search != "" {
+	//	query = fmt.Sprintf("%s WHERE name LIKE '%%%s%%'", query, search)
+	//}
+	//query = fmt.Sprintf("%s ORDER BY %s %s", query, sortBy, orderBy)
+	//
+	//var total int64
+	//
+	//db.connection.Raw(query).Count(&total)
+	//query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, perPage, (page-1)*perPage)
+	//err := db.connection.Raw(query).Scan(&requestes).Error
+	//
+	//totalPage := float64(total) / float64(perPage)
+	//
+	//pagination := dto.Pagination{
+	//	Page:      uint(page),
+	//	PerPage:   uint(perPage),
+	//	TotalData: uint(total),
+	//	TotalPage: uint(math.Ceil(totalPage)),
+	//}
+	//
+	//return requestes, pagination, err
 }
 
 // InsertRequest is to add request in database

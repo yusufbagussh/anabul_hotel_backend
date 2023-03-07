@@ -13,7 +13,7 @@ type ReservationNotification struct {
 	UserID                    string `gorm:"type:varchar(36);not null" json:"user_id"`
 	Base
 	Reservation *Reservation `gorm:"foreignkey:ReservationID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"reservation_detail,omitempty"`
-	User        *User        `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"reservation_detail,omitempty"`
+	User        *User        `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"user,omitempty"`
 }
 
 func (rc *ReservationNotification) BeforeCreate(tx *gorm.DB) (err error) {

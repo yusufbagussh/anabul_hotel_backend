@@ -14,6 +14,20 @@ type CreateReservation struct {
 	//UpdatedBy         string                    `json:"updated_by" form:"updated_by"`
 	ReservationDetail []CreateReservationDetail `json:"reservation_detail"`
 }
+
+type UpdatePaymentStatus struct {
+	IDReservation string `json:"id_reservation" form:"id_reservation" binding:"required"`
+	PaymentStatus string `json:"payment_status" form:"payment_status" binding:"required"`
+}
+type UpdateCheckInStatus struct {
+	IDReservation string `json:"id_reservation" form:"id_reservation" binding:"required"`
+	CheckInStatus string `json:"check_in_status" form:"check_in_status" binding:"required"`
+}
+type UpdateReservationStatus struct {
+	IDReservation     string `json:"id_reservation" form:"id_reservation" binding:"required"`
+	ReservationStatus string `json:"reservation_status" form:"reservation_status" binding:"required"`
+}
+
 type UpdateReservation struct {
 	IDReservation     string  `json:"id_reservation" form:"id_reservation" binding:"required"`
 	HotelID           string  `json:"hotel_id" form:"hotel_id" binding:"required"`

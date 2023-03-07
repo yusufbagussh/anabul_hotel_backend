@@ -14,6 +14,7 @@ type CageDetailService interface {
 	UpdateCageDetail(cageDetail dto.UpdateCageDetail) (entity.CageDetail, error)
 	DeleteCageDetail(cageDetailID string, userHotelID string) (error, interface{})
 	ShowCageDetail(cageDetailID string, userHotelID string) (entity.CageDetail, error, interface{})
+	UpdateCageDetailStatus(cageDetailStatus dto.UpdateCageDetailStatus) (entity.CageDetail, error)
 }
 
 type cageDetailService struct {
@@ -25,6 +26,11 @@ func NewCageDetailService(cageDetailRepo repository.CageDetailRepository) CageDe
 	return &cageDetailService{
 		cageDetailRepository: cageDetailRepo,
 	}
+}
+
+func (u *cageDetailService) UpdateCageDetailStatus(cageDetailStatus dto.UpdateCageDetailStatus) (entity.CageDetail, error) {
+	updatedCageDetail, err := u.cageDetailRepository.UpdateCageDetailStatus(cageDetailStatus)
+	return updatedCageDetail, err
 }
 
 func (u *cageDetailService) CreateCageDetail(cageDetail dto.CreateCageDetail) (entity.CageDetail, error) {

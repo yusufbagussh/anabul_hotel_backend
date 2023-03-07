@@ -6,6 +6,7 @@ import (
 	"github.com/yusufbagussh/pet_hotel_backend/entity"
 	"gorm.io/gorm"
 	"math"
+	"strings"
 )
 
 // ClassRepository is contract what classRepository can do to db
@@ -28,36 +29,75 @@ func (db *classConnection) DeleteClass(class entity.Class) error {
 }
 
 func (db *classConnection) GetAllClass(filterPagination dto.FilterPagination) ([]entity.Class, dto.Pagination, error) {
-	var classes []entity.Class
+	//var classes []entity.Class
+	//search := filterPagination.Search
+	//sortBy := filterPagination.SortBy
+	//orderBy := filterPagination.OrderBy
+	//perPage := filterPagination.PerPage
+	//page := filterPagination.Page
+	//if sortBy == "" {
+	//	sortBy = "created_at"
+	//}
+	//if orderBy == "" {
+	//	orderBy = "desc"
+	//}
+	//if page == 0 {
+	//	page = 1
+	//}
+	//if perPage == 0 {
+	//	perPage = 10
+	//}
+	//
+	//query := "SELECT * FROM classes"
+	//if search != "" {
+	//	query = fmt.Sprintf("%s WHERE LOWER(name) LIKE '%%%s%%'", query, search)
+	//}
+	//query = fmt.Sprintf("%s ORDER BY %s %s", query, sortBy, orderBy)
+	//
+	//var total int64
+	//
+	//db.connection.Raw(query).Count(&total)
+	//query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, perPage, (page-1)*perPage)
+	//err := db.connection.Raw(query).Scan(&classes).Error
+	//
+	//totalPage := float64(total) / float64(perPage)
+
 	search := filterPagination.Search
 	sortBy := filterPagination.SortBy
 	orderBy := filterPagination.OrderBy
-	perPage := filterPagination.PerPage
-	page := filterPagination.Page
-	if sortBy == "" {
-		sortBy = "created_at"
-	}
-	if orderBy == "" {
-		orderBy = "desc"
-	}
+	perPage := int(filterPagination.PerPage)
+	page := int(filterPagination.Page)
+
 	if page == 0 {
 		page = 1
 	}
 	if perPage == 0 {
 		perPage = 10
 	}
-
-	query := "SELECT * FROM classes"
-	if search != "" {
-		query = fmt.Sprintf("%s WHERE LOWER(name) LIKE '%%%s%%'", query, search)
-	}
-	query = fmt.Sprintf("%s ORDER BY %s %s", query, sortBy, orderBy)
-
 	var total int64
 
-	db.connection.Raw(query).Count(&total)
-	query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, perPage, (page-1)*perPage)
-	err := db.connection.Raw(query).Scan(&classes).Error
+	var classes []entity.Class
+	query := db.connection
+
+	if search != "" {
+		keyword := strings.ToLower(search)
+		if keyword != "" {
+			query = query.Where("LOWER(classes.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+		}
+	}
+
+	listSortBy := []string{"name"}
+	listSortOrder := []string{"desc", "asc"}
+
+	if sortBy != "" && contains(listSortBy, sortBy) == true && orderBy != "" && contains(listSortOrder, orderBy) {
+		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
+	} else {
+		sortBy = "created_at"
+		orderBy = "desc"
+		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
+	}
+
+	err := query.Limit(perPage).Offset((page - 1) * perPage).Find(&classes).Count(&total).Error
 
 	totalPage := float64(total) / float64(perPage)
 
