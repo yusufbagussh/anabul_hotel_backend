@@ -27,6 +27,9 @@ var (
 	requestRepository              repository.RequestRepository              = repository.NewRequestRepository(db)
 	hotelRepository                repository.HotelRepository                = repository.NewHotelRepository(db)
 	userRepository                 repository.UserRepository                 = repository.NewUserRepository(db)
+	provinceRepository             repository.ProvinceRepository             = repository.NewProvinceRepository(db)
+	cityRepository                 repository.CityRepository                 = repository.NewCityRepository(db)
+	districtRepository             repository.DistrictRepository             = repository.NewDistrictRepository(db)
 	classRepository                repository.ClassRepository                = repository.NewClassRepository(db)
 	categoryRepository             repository.CategoryRepository             = repository.NewCategoryRepository(db)
 	speciesRepository              repository.SpeciesRepository              = repository.NewSpeciesRepository(db)
@@ -41,7 +44,12 @@ var (
 	serviceDetailRepository        repository.ServiceDetailRepository        = repository.NewServiceDetailRepository(db)
 	productRepository              repository.ProductRepository              = repository.NewProductRepository(db)
 	reservationRepository          repository.ReservationRepository          = repository.NewReservationRepository(db)
+	reservationDetailRepository    repository.ReservationDetailRepository    = repository.NewReservationDetailRepository(db)
+	reservationProductRepository   repository.ReservationProductRepository   = repository.NewReservationProductRepository(db)
+	reservationServiceRepository   repository.ReservationServiceRepository   = repository.NewReservationServiceRepository(db)
 	reservationInventoryRepository repository.ReservationInventoryRepository = repository.NewReservationInventoryRepository(db)
+	rateRepository                 repository.RateRepository                 = repository.NewRateRepository(db)
+	responseRepository             repository.ResponseRepository             = repository.NewResponseRepository(db)
 	redisService                   service.RedisService                      = service.NewRedisService(cache)
 	jwtService                     service.JWTService                        = service.NewJWTService()
 	checkHelper                    helper.CheckHelper                        = helper.NewCheckHelper(userRepository)
@@ -49,6 +57,9 @@ var (
 	requestService                 service.RequestService                    = service.NewRequestService(requestRepository, userRepository, hotelRepository, checkHelper)
 	hotelService                   service.HotelService                      = service.NewHotelService(hotelRepository, checkHelper)
 	userService                    service.UserService                       = service.NewUserService(userRepository)
+	provinceService                service.ProvinceService                   = service.NewProvinceService(provinceRepository)
+	cityService                    service.CityService                       = service.NewCityService(cityRepository)
+	districtService                service.DistrictService                   = service.NewDistrictService(districtRepository)
 	classService                   service.ClassService                      = service.NewClassService(classRepository)
 	categoryService                service.CategoryService                   = service.NewCategoryService(categoryRepository)
 	speciesService                 service.SpeciesService                    = service.NewSpeciesService(speciesRepository)
@@ -63,12 +74,20 @@ var (
 	serviceDetailService           service.ServiceDetailService              = service.NewServiceDetailService(serviceDetailRepository)
 	productService                 service.ProductService                    = service.NewProductService(productRepository)
 	reservationService             service.ReservationService                = service.NewReservationService(reservationRepository)
+	reservationDetailService       service.ReservationDetailService          = service.NewReservationDetailService(reservationDetailRepository)
+	reservationServiceService      service.ReservationServiceService         = service.NewReservationServiceService(reservationServiceRepository)
+	reservationProductService      service.ReservationProductService         = service.NewReservationProductService(reservationProductRepository)
 	reservationInventoryService    service.ReservationInventoryService       = service.NewReservationInventoryService(reservationInventoryRepository)
+	rateService                    service.RateService                       = service.NewRateService(rateRepository)
+	responseService                service.ResponseService                   = service.NewResponseService(responseRepository)
 	authController                 controller.AuthController                 = controller.NewAuthController(authService, jwtService, redisService)
 	requestController              controller.RequestController              = controller.NewRequestController(requestService, jwtService)
 	hotelController                controller.HotelController                = controller.NewHotelController(hotelService, jwtService)
 	userController                 controller.UserController                 = controller.NewUserController(userService, jwtService)
 	classController                controller.ClassController                = controller.NewClassController(classService, jwtService)
+	provinceController             controller.ProvinceController             = controller.NewProvinceController(provinceService, jwtService)
+	cityController                 controller.CityController                 = controller.NewCityController(cityService, jwtService)
+	districtController             controller.DistrictController             = controller.NewDistrictController(districtService, jwtService)
 	categoryController             controller.CategoryController             = controller.NewCategoryController(categoryService, jwtService)
 	speciesController              controller.SpeciesController              = controller.NewSpeciesController(speciesService, jwtService)
 	petController                  controller.PetController                  = controller.NewPetController(petService, jwtService)
@@ -82,12 +101,20 @@ var (
 	serviceDetailController        controller.ServiceDetailController        = controller.NewServiceDetailController(serviceDetailService, jwtService)
 	productController              controller.ProductController              = controller.NewProductController(productService, jwtService)
 	reservationController          controller.ReservationController          = controller.NewReservationController(reservationService, jwtService)
+	reservationDetailController    controller.ReservationDetailController    = controller.NewReservationDetailController(reservationDetailService, jwtService)
+	reservationServiceController   controller.ReservationServiceController   = controller.NewReservationServiceController(reservationServiceService, jwtService)
+	reservationProductController   controller.ReservationProductController   = controller.NewReservationProductController(reservationProductService, jwtService)
 	reservationInventoryController controller.ReservationInventoryController = controller.NewReservationInventoryController(reservationInventoryService, jwtService)
+	rateController                 controller.RateController                 = controller.NewRateController(rateService, jwtService)
+	responseController             controller.ResponseController             = controller.NewResponseController(responseService, jwtService)
 	Routes                         route.Route                               = route.NewRoute(
 		userController,
 		authController,
 		requestController,
 		hotelController,
+		provinceController,
+		cityController,
+		districtController,
 		classController,
 		categoryController,
 		speciesController,
@@ -102,7 +129,12 @@ var (
 		serviceDetailController,
 		productController,
 		reservationController,
+		reservationDetailController,
 		reservationInventoryController,
+		reservationProductController,
+		reservationServiceController,
+		rateController,
+		responseController,
 		jwtService,
 		redisService,
 		userService,
