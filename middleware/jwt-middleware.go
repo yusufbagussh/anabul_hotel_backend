@@ -64,13 +64,58 @@ func CheckRole(jwtService service.JWTService, userServ service.UserService, redi
 			checkRedis := redisServ.CheckValueKey(ID.(string), authHeader)
 			if checkRedis {
 				role := claims["role"]
-				if role == roles {
-					us, _ := userServ.GetProfile(ID.(string))
-					context.Set("UserLog", us)
-				} else {
-					resp := helper.BuildErrorResponse("Role Invalid", "Role no have permission", nil)
-					context.AbortWithStatusJSON(http.StatusForbidden, resp)
-					return
+				if len(roles) == 2 {
+					if role == "" || role == "" {
+						us, _ := userServ.GetProfile(ID.(string))
+						context.Set("UserLog", us)
+					} else {
+						resp := helper.BuildErrorResponse("Role Invalid", "Role no have permission", nil)
+						context.AbortWithStatusJSON(http.StatusForbidden, resp)
+						return
+					}
+				}
+			} else {
+				//redisServ.ClearToken(ID.(string))
+				resp := helper.BuildErrorResponse("Token Invalid", "Key Or Value Not Found", nil)
+				context.AbortWithStatusJSON(http.StatusUnauthorized, resp)
+				return
+			}
+		} else {
+			redisServ.ClearToken(ID.(string))
+			resp := helper.BuildErrorResponse("Token Invalid", errTok.Error(), nil)
+			context.AbortWithStatusJSON(http.StatusUnauthorized, resp)
+			return
+		}
+	}
+}
+func CheckRoles(jwtService service.JWTService, userServ service.UserService, redisServ service.RedisService, roles ...string) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		authHeader := context.GetHeader("Authorization")
+		//Melakukan pengecekan pada header request yang dikirimkan oleh user
+		if authHeader == "" {
+			response := helper.BuildErrorResponse("Failed to process request", "No token found", nil)
+			context.AbortWithStatusJSON(http.StatusBadRequest, response)
+			return
+		}
+		//Jika ada, cek header bearer token ke dalam service ValidateToken
+		token, errTok := jwtService.ValidateToken(authHeader)
+		claims := token.Claims.(jwt.MapClaims)
+		ID := claims["user_id"]
+		if token.Valid {
+			//claims := token.Claims.(jwt.MapClaims)
+			//ID := claims["ID"]
+			checkRedis := redisServ.CheckValueKey(ID.(string), authHeader)
+			if checkRedis {
+				role := claims["role"]
+				if len(roles) == 2 {
+					if role == "Admin" || role == "Customer" {
+						us, _ := userServ.GetProfile(ID.(string))
+						context.Set("UserLog", us)
+					} else {
+						resp := helper.BuildErrorResponse("Role Invalid", "Role no have permission", nil)
+						context.AbortWithStatusJSON(http.StatusForbidden, resp)
+						return
+					}
 				}
 			} else {
 				//redisServ.ClearToken(ID.(string))

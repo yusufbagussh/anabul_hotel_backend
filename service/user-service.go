@@ -77,6 +77,18 @@ func (u *userService) CreateUser(user dto.UserHotelCreateDTO, ctx *gin.Context) 
 		}
 	}
 
+	if user.Selfie != nil {
+		fileName := user.Selfie.Filename
+		extension := filepath.Ext(user.Selfie.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
+		newKTPFile := fileName + extension
+		userCreate.Selfie = newKTPFile
+
+		err := ctx.SaveUploadedFile(user.Selfie, "uploads/user-profiles/"+newKTPFile)
+		if err != nil {
+			return userCreate, err
+		}
+	}
+
 	userCreate.Name = user.UserName
 	userCreate.Email = user.UserEmail
 	userCreate.Password = user.Password
@@ -129,6 +141,27 @@ func (u *userService) UpdateUser(user dto.UserHotelUpdateDTO, ctx *gin.Context) 
 			}
 		}
 	}
+
+	if user.Selfie != nil {
+		fileName := user.Selfie.Filename
+		extension := filepath.Ext(user.Selfie.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
+		newKTPFile := fileName + extension
+		userUpdate.Selfie = newKTPFile
+
+		err := ctx.SaveUploadedFile(user.Selfie, "uploads/user-profiles/"+newKTPFile)
+		if err != nil {
+			return userUpdate, err
+		} else {
+			userByID, _ := u.userRepository.FindUserByID(user.ID)
+			if userByID.Selfie != "" {
+				errRemove := os.Remove("./uploads/user-profiles/" + userByID.Selfie)
+				if errRemove != nil {
+					return userUpdate, errRemove
+				}
+			}
+		}
+	}
+
 	userUpdate.ID = user.ID
 	userUpdate.Name = user.Name
 	userUpdate.Email = user.Email
@@ -153,6 +186,12 @@ func (u *userService) DeleteUser(userID string) error {
 	}
 	if user.KTP != "" {
 		errRemove := os.Remove("./uploads/user-profiles/" + user.KTP)
+		if errRemove != nil {
+			return errRemove
+		}
+	}
+	if user.Selfie != "" {
+		errRemove := os.Remove("./uploads/user-profiles/" + user.Selfie)
 		if errRemove != nil {
 			return errRemove
 		}
@@ -256,6 +295,25 @@ func (u *userService) Update(user dto.UserHotelUpdateDTO, ctx *gin.Context) (ent
 			userByID, _ := u.userRepository.FindUserByID(user.ID)
 			if userByID.KTP != "" {
 				errRemove := os.Remove("./uploads/user-profiles/" + userByID.KTP)
+				if errRemove != nil {
+					return userUpdate, errRemove
+				}
+			}
+		}
+	}
+	if user.Selfie != nil {
+		fileName := user.Selfie.Filename
+		extension := filepath.Ext(user.Selfie.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
+		newNIKFile := fileName + extension
+		userUpdate.Selfie = newNIKFile
+
+		err := ctx.SaveUploadedFile(user.Selfie, "uploads/user-profiles/"+newNIKFile)
+		if err != nil {
+			return userUpdate, err
+		} else {
+			userByID, _ := u.userRepository.FindUserByID(user.ID)
+			if userByID.Selfie != "" {
+				errRemove := os.Remove("./uploads/user-profiles/" + userByID.Selfie)
 				if errRemove != nil {
 					return userUpdate, errRemove
 				}
