@@ -24,7 +24,7 @@ type groupDetailConnection struct {
 }
 
 func (db *groupDetailConnection) DeleteGroupDetail(groupDetail entity.GroupDetail) error {
-	err := db.connection.Where("id_groupDetail = ?", groupDetail.IDGroupDetail).Delete(&groupDetail).Error
+	err := db.connection.Where("id_group_detail = ?", groupDetail.IDGroupDetail).Delete(&groupDetail).Error
 	return err
 }
 
@@ -44,8 +44,8 @@ func (db *groupDetailConnection) GetAllGroupDetail(hotelID string, filterPaginat
 	var total int64
 
 	var groupDetails []entity.GroupDetail
-	query := db.connection.Joins("JOIN groups ON group_details.group_id = groups.id_group").
-		Joins("JOIN species ON groups.species_id = species.id_species")
+	query := db.connection.Model(&groupDetails).Joins("LEFT JOIN groups ON group_details.group_id = groups.id_group").
+		Joins("LEFT JOIN species ON group_details.species_id = species.id_species")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
@@ -65,6 +65,11 @@ func (db *groupDetailConnection) GetAllGroupDetail(hotelID string, filterPaginat
 		if filterPagination.SpeciesID != "" {
 			db.Where("group_details.species_id = ?", filterPagination.SpeciesID)
 		}
+		if filterPagination.HotelID != "" {
+			db.Where("group_details.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("group_details.hotel_id = ?", hotelID)
+		}
 		return db
 	})
 
@@ -79,7 +84,7 @@ func (db *groupDetailConnection) GetAllGroupDetail(hotelID string, filterPaginat
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).
 		Preload("Group").
 		Preload("Species").
 		Preload("Hotel").
@@ -106,15 +111,15 @@ func (db *groupDetailConnection) InsertGroupDetail(groupDetail entity.GroupDetai
 
 // UpdateGroupDetail is func to edit groupDetail in database
 func (db *groupDetailConnection) UpdateGroupDetail(groupDetail entity.GroupDetail) (entity.GroupDetail, error) {
-	err := db.connection.Where("id_groupDetail = ?", groupDetail.IDGroupDetail).Updates(&groupDetail).Error
-	db.connection.Where("id_groupDetail = ?", groupDetail.IDGroupDetail).Find(&groupDetail)
+	err := db.connection.Where("id_group_detail = ?", groupDetail.IDGroupDetail).Updates(&groupDetail).Error
+	db.connection.Where("id_group_detail = ?", groupDetail.IDGroupDetail).Find(&groupDetail)
 	return groupDetail, err
 }
 
 // FindGroupDetailByID is func to get groupDetail by email
 func (db *groupDetailConnection) FindGroupDetailByID(groupDetailID string) (entity.GroupDetail, error) {
 	var groupDetail entity.GroupDetail
-	err := db.connection.Where("id_groupDetail = ?", groupDetailID).Take(&groupDetail).Error
+	err := db.connection.Where("id_group_detail = ?", groupDetailID).Take(&groupDetail).Error
 	return groupDetail, err
 }
 

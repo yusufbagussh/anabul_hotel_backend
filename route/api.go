@@ -38,6 +38,7 @@ type route struct {
 	reservationInventoryController controller.ReservationInventoryController
 	reservationServiceController   controller.ReservationServiceController
 	reservationProductController   controller.ReservationProductController
+	reservationConditionController controller.ReservationConditionController
 	jwtService                     service.JWTService
 	redisService                   service.RedisService
 	userService                    service.UserService
@@ -121,8 +122,8 @@ func (r *route) Routes(route *gin.Engine) {
 	{
 		requestRoutes.GET("/all", r.requestController.GetAllRequest)
 		requestRoutes.GET("/show/:id", r.requestController.ShowRequest)
-		requestRoutes.PUT("/update", r.requestController.UpdateRequest)
 		requestRoutes.PUT("/status", r.requestController.UpdateRequestStatus)
+		//requestRoutes.PUT("/update", r.requestController.UpdateRequest)
 		requestRoutes.DELETE("/delete/:id", r.requestController.DeleteRequest)
 	}
 
@@ -149,7 +150,7 @@ func (r *route) Routes(route *gin.Engine) {
 		adminRoutes.DELETE("/delete/:id", r.userController.DeleteAdmin)
 	}
 
-	hotelAdminRoutes := route.Group("api/profilehotel", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
+	hotelAdminRoutes := route.Group("api/hotel", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		hotelAdminRoutes.GET("/profile", r.hotelController.GetProfileHotel)
 		hotelAdminRoutes.PUT("/profile", r.hotelController.UpdateProfileHotel)
@@ -242,6 +243,12 @@ func (r *route) Routes(route *gin.Engine) {
 		cageTypeRoutes.DELETE("/delete/:id", r.cageTypeController.DeleteCageType)
 	}
 
+	cageCategory := route.Group("api/cageCategory")
+	{
+		cageCategory.GET("/all", r.cageCategoryController.GetAllCageCategory)
+		cageCategory.GET("/show/:id", r.cageCategoryController.ShowCageCategory)
+	}
+
 	cageCategoryRoutes := route.Group("api/cageCategory", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		cageCategoryRoutes.POST("/add", r.cageCategoryController.CreateCageCategory)
@@ -261,7 +268,7 @@ func (r *route) Routes(route *gin.Engine) {
 		//cageDetailRoutes.GET("/show/:id", r.cageDetailController.ShowCageDetail)
 		cageDetailRoutes.POST("/add", r.cageDetailController.CreateCageDetail)
 		cageDetailRoutes.PUT("/update", r.cageDetailController.UpdateCageDetail)
-		cageDetailRoutes.PUT("/cageDetailStatus", r.cageDetailController.UpdateCageDetailStatus)
+		cageDetailRoutes.PUT("/status", r.cageDetailController.UpdateCageDetailStatus)
 		cageDetailRoutes.DELETE("/delete/:id", r.cageDetailController.DeleteCageDetail)
 	}
 
@@ -335,7 +342,7 @@ func (r *route) Routes(route *gin.Engine) {
 		//productRoutes.GET("/show/:id", r.productController.ShowProduct)
 		productRoutes.POST("/add", r.productController.CreateProduct)
 		productRoutes.PUT("/update", r.productController.UpdateProduct)
-		productRoutes.PUT("/productStatus", r.productController.UpdateProductStatus)
+		productRoutes.PUT("/status", r.productController.UpdateProductStatus)
 		productRoutes.DELETE("/delete/:id", r.productController.DeleteProduct)
 	}
 
@@ -345,6 +352,11 @@ func (r *route) Routes(route *gin.Engine) {
 		reservation.GET("/show/:id", r.reservationController.ShowReservation)
 	}
 
+	reservationCustomer := route.Group("api/reservationCustomer", middleware.CheckRoles(r.jwtService, r.userService, r.redisService, "Admin", "Customer"))
+	{
+		reservationCustomer.POST("/add", r.reservationController.CreateReservation)
+	}
+
 	reservationRoutes := route.Group("api/reservation", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		//reservationRoutes.GET("/all", r.reservationController.GetAllReservation)
@@ -352,7 +364,6 @@ func (r *route) Routes(route *gin.Engine) {
 		reservationRoutes.PUT("/reservationStatus", r.reservationController.UpdateReservationStatus)
 		reservationRoutes.PUT("/checkinStatus", r.reservationController.UpdateCheckInStatus)
 		//reservationRoutes.GET("/show/:id", r.reservationController.ShowReservation)
-		reservationRoutes.POST("/add", r.reservationController.CreateReservation)
 		reservationRoutes.PUT("/update", r.reservationController.UpdateReservation)
 		reservationRoutes.DELETE("/delete/:id", r.reservationController.DeleteReservation)
 	}
@@ -363,7 +374,7 @@ func (r *route) Routes(route *gin.Engine) {
 		reservationDetail.GET("/show/:id", r.reservationDetailController.ShowReservationDetail)
 	}
 
-	reservationDetailRoutes := route.Group("api/reservation_detail", middleware.AuthorizeJWT(r.jwtService, r.userService, r.redisService))
+	reservationDetailRoutes := route.Group("api/reservation_detail", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		//reservationDetailRoutes.GET("/all", r.reservationDetailController.GetAllReservationDetail)
 		//reservationDetailRoutes.GET("/show/:id", r.reservationDetailController.ShowReservationDetail)
@@ -372,13 +383,28 @@ func (r *route) Routes(route *gin.Engine) {
 		reservationDetailRoutes.DELETE("/delete/:id", r.reservationDetailController.DeleteReservationDetail)
 	}
 
+	reservationCondition := route.Group("api/reservationCondition", middleware.CheckRoles(r.jwtService, r.userService, r.redisService, "Admin", "Customer"))
+	{
+		reservationCondition.GET("/all", r.reservationConditionController.GetAllReservationCondition)
+		reservationCondition.GET("/show/:id", r.reservationConditionController.ShowReservationCondition)
+	}
+
+	reservationConditionRoutes := route.Group("api/reservation_condition", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
+	{
+		//reservationConditionRoutes.GET("/all", r.reservationConditionController.GetAllReservationCondition)
+		//reservationConditionRoutes.GET("/show/:id", r.reservationConditionController.ShowReservationCondition)
+		reservationConditionRoutes.POST("/add", r.reservationConditionController.CreateReservationCondition)
+		reservationConditionRoutes.PUT("/update", r.reservationConditionController.UpdateReservationCondition)
+		reservationConditionRoutes.DELETE("/delete/:id", r.reservationConditionController.DeleteReservationCondition)
+	}
+
 	reservationInventory := route.Group("api/reservation_inventory", middleware.CheckRoles(r.jwtService, r.userService, r.redisService, "Admin", "Customer"))
 	{
 		reservationInventory.GET("/all", r.reservationInventoryController.GetAllReservationInventory)
 		reservationInventory.GET("/show/:id", r.reservationInventoryController.ShowReservationInventory)
 	}
 
-	reservationInventoryRoutes := route.Group("api/reservation_inventory", middleware.AuthorizeJWT(r.jwtService, r.userService, r.redisService))
+	reservationInventoryRoutes := route.Group("api/reservation_inventory", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		//reservationInventoryRoutes.GET("/all", r.reservationInventoryController.GetAllReservationInventory)
 		//reservationInventoryRoutes.GET("/show/:id", r.reservationInventoryController.ShowReservationInventory)
@@ -393,7 +419,7 @@ func (r *route) Routes(route *gin.Engine) {
 		reservationService.GET("/show/:id", r.reservationServiceController.ShowReservationService)
 	}
 
-	reservationServiceRoutes := route.Group("api/reservation_service", middleware.AuthorizeJWT(r.jwtService, r.userService, r.redisService))
+	reservationServiceRoutes := route.Group("api/reservation_service", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		//reservationServiceRoutes.GET("/all", r.reservationServiceController.GetAllReservationService)
 		//reservationServiceRoutes.GET("/show/:id", r.reservationServiceController.ShowReservationService)
@@ -408,7 +434,7 @@ func (r *route) Routes(route *gin.Engine) {
 		reservationProduct.GET("/show/:id", r.reservationProductController.ShowReservationProduct)
 	}
 
-	reservationProductRoutes := route.Group("api/reservation_product", middleware.AuthorizeJWT(r.jwtService, r.userService, r.redisService))
+	reservationProductRoutes := route.Group("api/reservation_product", middleware.CheckRole(r.jwtService, r.userService, r.redisService, "Admin"))
 	{
 		//reservationProductRoutes.GET("/all", r.reservationProductController.GetAllReservationProduct)
 		//reservationProductRoutes.GET("/show/:id", r.reservationProductController.ShowReservationProduct)
@@ -474,6 +500,7 @@ func NewRoute(
 	reservationInventoryController controller.ReservationInventoryController,
 	reservationProductController controller.ReservationProductController,
 	reservationServiceController controller.ReservationServiceController,
+	reservationConditionController controller.ReservationConditionController,
 	rateController controller.RateController,
 	responseController controller.ResponseController,
 	jwtServices service.JWTService,
@@ -506,6 +533,7 @@ func NewRoute(
 		reservationProductController:   reservationProductController,
 		reservationServiceController:   reservationServiceController,
 		reservationInventoryController: reservationInventoryController,
+		reservationConditionController: reservationConditionController,
 		rateController:                 rateController,
 		responseController:             responseController,
 		jwtService:                     jwtServices,

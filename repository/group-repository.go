@@ -44,14 +44,26 @@ func (db *groupConnection) GetAllGroup(hotelID string, filterPagination dto.Filt
 	var total int64
 
 	var groups []entity.Group
-	query := db.connection
+	query := db.connection.Model(&groups)
 
-	if search != "" {
-		keyword := strings.ToLower(search)
-		if keyword != "" {
-			query = query.Where("LOWER(groups.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
+		if search != "" {
+			keyword := strings.ToLower(search)
+			if keyword != "" {
+				db.Where("LOWER(groups.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+			}
 		}
-	}
+		return db
+	})
+
+	query.Where(whereClause).Scopes(func(db *gorm.DB) *gorm.DB {
+		if filterPagination.HotelID != "" {
+			db.Where("groups.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("groups.hotel_id = ?", hotelID)
+		}
+		return db
+	})
 
 	listSortBy := []string{"name"}
 	listSortOrder := []string{"desc", "asc"}
@@ -64,7 +76,7 @@ func (db *groupConnection) GetAllGroup(hotelID string, filterPagination dto.Filt
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&groups).Count(&total).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&groups).Error
 
 	totalPage := float64(total) / float64(perPage)
 

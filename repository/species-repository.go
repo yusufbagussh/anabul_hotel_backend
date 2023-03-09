@@ -44,7 +44,7 @@ func (db *speciesConnection) GetAllSpecies(filterPagination dto.FilterPagination
 	var total int64
 
 	var species []entity.Species
-	query := db.connection.Joins("JOIN Categories ON species.category_id = categories.id_category")
+	query := db.connection.Model(&species).Joins("LEFT JOIN Categories ON species.category_id = categories.id_category")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
@@ -78,9 +78,9 @@ func (db *speciesConnection) GetAllSpecies(filterPagination dto.FilterPagination
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	query.Find(&species).Count(&total)
+	//query.Find(&species).Count(&total)
 
-	err := query.Limit(perPage).Offset((page - 1) * perPage).Preload("Categories").Find(&species).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Category").Find(&species).Error
 
 	totalPage := float64(total) / float64(perPage)
 

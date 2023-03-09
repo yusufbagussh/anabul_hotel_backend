@@ -6,6 +6,8 @@ type FilterPagination struct {
 	OrderBy        string `json:"orderBy" form:"orderBy"`
 	Page           uint32 `json:"page" form:"page"`
 	PerPage        uint32 `json:"perPage" form:"perPage"`
+	UserID         string `json:"user_id" form:"user_id"`
+	HotelID        string `json:"hotel_id" form:"hotel_id"`
 	ProvinceID     string `json:"provinceId" form:"provinceId"`
 	CityID         string `json:"cityId" form:"cityId"`
 	DistrictID     string `json:"districtId" form:"districtId"`

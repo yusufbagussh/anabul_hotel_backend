@@ -11,9 +11,13 @@ func ClassSeeder() *[]entity.Class {
 	class2 := entity.Class{
 		Name: "Aves",
 	}
+	class3 := entity.Class{
+		Name: "Reptil",
+	}
 	classes := []entity.Class{
 		class1,
 		class2,
+		class3,
 	}
 	return &classes
 }

@@ -5,7 +5,7 @@ type CreateGroup struct {
 	HotelID string `json:"hotel_id" binding:"required" form:"hotel_id"`
 }
 type UpdateGroup struct {
-	IDGroup string `json:"id_category" binding:"required" form:"group_id"`
+	IDGroup string `json:"id_category" binding:"required" form:"id_group"`
 	Name    string `json:"name" binding:"required" form:"name"`
 	HotelID string `json:"hotel_id" binding:"required" form:"hotel_id"`
 }

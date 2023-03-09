@@ -24,7 +24,7 @@ type serviceDetailConnection struct {
 }
 
 func (db *serviceDetailConnection) DeleteServiceDetail(serviceDetail entity.ServiceDetail) error {
-	err := db.connection.Where("id_serviceDetail = ?", serviceDetail.IDServiceDetail).Delete(&serviceDetail).Error
+	err := db.connection.Where("id_service_detail = ?", serviceDetail.IDServiceDetail).Delete(&serviceDetail).Error
 	return err
 }
 
@@ -44,14 +44,14 @@ func (db *serviceDetailConnection) GetAllServiceDetail(hotelID string, filterPag
 	var total int64
 
 	var serviceDetails []entity.ServiceDetail
-	query := db.connection.Joins("JOIN services ON service_details.service_id = services.id_service").
-		Joins("JOIN groups ON services.group_id = groups.id_group")
+	query := db.connection.Model(&serviceDetails).Joins("LEFT JOIN services ON service_details.service_id = services.id_service").
+		Joins("LEFT JOIN groups ON service_details.group_id = groups.id_group")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
 			keyword := strings.ToLower(search)
 			if keyword != "" {
-				query = query.Where("LOWER(services.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword)).
+				db.Where("LOWER(services.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword)).
 					Or("LOWER(groups.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
 			}
 		}
@@ -64,6 +64,11 @@ func (db *serviceDetailConnection) GetAllServiceDetail(hotelID string, filterPag
 		}
 		if filterPagination.GroupID != "" {
 			db.Where("service_details.group_id = ?", filterPagination.GroupID)
+		}
+		if filterPagination.HotelID != "" {
+			db.Where("service_details.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("service_details.hotel_id = ?", hotelID)
 		}
 		return db
 	})
@@ -79,7 +84,7 @@ func (db *serviceDetailConnection) GetAllServiceDetail(hotelID string, filterPag
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).
 		Preload("Service").
 		Preload("Group").
 		Preload("Hotel").
@@ -106,15 +111,15 @@ func (db *serviceDetailConnection) InsertServiceDetail(serviceDetail entity.Serv
 
 // UpdateServiceDetail is func to edit serviceDetail in database
 func (db *serviceDetailConnection) UpdateServiceDetail(serviceDetail entity.ServiceDetail) (entity.ServiceDetail, error) {
-	err := db.connection.Where("id_serviceDetail = ?", serviceDetail.IDServiceDetail).Updates(&serviceDetail).Error
-	db.connection.Where("id_serviceDetail = ?", serviceDetail.IDServiceDetail).Find(&serviceDetail)
+	err := db.connection.Where("id_service_detail = ?", serviceDetail.IDServiceDetail).Updates(&serviceDetail).Error
+	db.connection.Where("id_service_detail = ?", serviceDetail.IDServiceDetail).Find(&serviceDetail)
 	return serviceDetail, err
 }
 
 // FindServiceDetailByID is func to get serviceDetail by email
 func (db *serviceDetailConnection) FindServiceDetailByID(serviceDetailID string) (entity.ServiceDetail, error) {
 	var serviceDetail entity.ServiceDetail
-	err := db.connection.Where("id_serviceDetail = ?", serviceDetailID).Take(&serviceDetail).Error
+	err := db.connection.Where("id_service_detail = ?", serviceDetailID).Take(&serviceDetail).Error
 	return serviceDetail, err
 }
 

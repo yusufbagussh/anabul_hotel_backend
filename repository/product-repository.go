@@ -31,7 +31,7 @@ func (db *productConnection) DeleteProduct(product entity.Product) error {
 
 func (db *productConnection) UpdateProductStatus(productStatus dto.UpdateProductStatus) (entity.Product, error) {
 	var product entity.Product
-	err := db.connection.Model(&product).Where("id_reservation = ?", productStatus.IDProduct).Updates(&entity.Product{Status: productStatus.Status}).Error
+	err := db.connection.Model(&product).Where("id_product = ?", productStatus.IDProduct).Updates(&entity.Product{Status: productStatus.Status}).Error
 	db.connection.Find(&product)
 	return product, err
 }
@@ -52,14 +52,26 @@ func (db *productConnection) GetAllProduct(hotelID string, filterPagination dto.
 	var total int64
 
 	var products []entity.Product
-	query := db.connection
+	query := db.connection.Model(&products)
 
-	if search != "" {
-		keyword := strings.ToLower(search)
-		if keyword != "" {
-			query = query.Where("LOWER(products.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
+		if search != "" {
+			keyword := strings.ToLower(search)
+			if keyword != "" {
+				db.Where("LOWER(products.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+			}
 		}
-	}
+		return db
+	})
+
+	query.Where(whereClause).Scopes(func(db *gorm.DB) *gorm.DB {
+		if filterPagination.HotelID != "" {
+			db.Where("products.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("products.hotel_id = ?", hotelID)
+		}
+		return db
+	})
 
 	listSortBy := []string{"name"}
 	listSortOrder := []string{"desc", "asc"}
@@ -72,7 +84,7 @@ func (db *productConnection) GetAllProduct(hotelID string, filterPagination dto.
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&products).Count(&total).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&products).Error
 
 	totalPage := float64(total) / float64(perPage)
 

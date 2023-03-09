@@ -51,6 +51,12 @@ func (u *serviceDetailController) CreateServiceDetail(ctx *gin.Context) {
 }
 func (u *serviceDetailController) UpdateServiceDetail(ctx *gin.Context) {
 	var UpdateServiceDetail dto.UpdateServiceDetail
+	errDTO := ctx.ShouldBind(&UpdateServiceDetail)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
 	authHeader := ctx.GetHeader("Authorization")
 	token, _ := u.jwtService.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
@@ -62,12 +68,6 @@ func (u *serviceDetailController) UpdateServiceDetail(ctx *gin.Context) {
 			helper.EmptyObj{},
 		)
 		ctx.JSON(http.StatusUnauthorized, res)
-		return
-	}
-	errDTO := ctx.ShouldBind(&UpdateServiceDetail)
-	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 	result, errCreate := u.serviceDetailService.UpdateServiceDetail(UpdateServiceDetail)

@@ -44,8 +44,8 @@ func (db *petConnection) GetAllPet(customerID string, filterPagination dto.Filte
 	var total int64
 
 	var pets []entity.Pet
-	query := db.connection.Joins("JOIN species ON pet.species_id = species.id_species").
-		Joins("JOIN categories ON species.category_id = categories.id_category")
+	query := db.connection.Model(&pets).Joins("LEFT JOIN species ON pet.species_id = species.id_species").
+		Joins("LEFT JOIN categories ON species.category_id = categories.id_category")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
@@ -83,7 +83,7 @@ func (db *petConnection) GetAllPet(customerID string, filterPagination dto.Filte
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("user_id = ?", customerID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&pets).Count(&total).Error
+	err := query.Where("user_id = ?", customerID).Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&pets).Error
 
 	totalPage := float64(total) / float64(perPage)
 

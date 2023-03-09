@@ -26,6 +26,9 @@ func UserSeeder(hotel *[]entity.Hotel) *[]entity.User {
 		Role:     "Admin",
 		HotelID:  (*hotel)[0].IDHotel,
 		Verified: true,
+		NIK:      223344556677,
+		KTP:      "KTP_Pet Hotel Indonesia.jpg",
+		Selfie:   "Selfie_Pet Hotel Indonesia.jpg",
 	}
 	user3 := entity.User{
 		Name:     "Hiruzen Sarutobi",

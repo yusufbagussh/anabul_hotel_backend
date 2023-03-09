@@ -8,6 +8,7 @@ import (
 	"github.com/yusufbagussh/pet_hotel_backend/repository"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // UserService is a contract of what userService can do
@@ -89,14 +90,19 @@ func (u *userService) CreateUser(user dto.UserHotelCreateDTO, ctx *gin.Context) 
 		}
 	}
 
-	userCreate.Name = user.UserName
-	userCreate.Email = user.UserEmail
+	userCreate.Name = user.Name
+	userCreate.Email = user.Email
 	userCreate.Password = user.Password
 	userCreate.Address = user.Address
 	userCreate.Phone = user.Phone
 	userCreate.Role = user.Role
 	userCreate.HotelID = user.HotelID
 	userCreate.NIK = user.NIK
+	userCreate.Gender = user.Gender
+	layout := "2006-01-02"
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	birthDate, _ := time.ParseInLocation(layout, user.BirthDate, loc)
+	userCreate.BirthDate = birthDate
 	updatedUser, err := u.userRepository.InsertUser(userCreate)
 	return updatedUser, err
 }
@@ -169,6 +175,11 @@ func (u *userService) UpdateUser(user dto.UserHotelUpdateDTO, ctx *gin.Context) 
 	userUpdate.Phone = user.Phone
 	userUpdate.NIK = user.NIK
 	userUpdate.Role = user.Role
+	layout := "2006-01-02"
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	birthDate, _ := time.ParseInLocation(layout, user.BirthDate, loc)
+	userUpdate.BirthDate = birthDate
+	userUpdate.Gender = user.Gender
 	userUpdate.HotelID = user.HotelID
 	updatedUser, err := u.userRepository.UpdateUser(userUpdate)
 	return updatedUser, err

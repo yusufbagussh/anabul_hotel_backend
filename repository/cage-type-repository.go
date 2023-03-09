@@ -24,7 +24,7 @@ type cageTypeConnection struct {
 }
 
 func (db *cageTypeConnection) DeleteCageType(cageType entity.CageType) error {
-	err := db.connection.Where("id_cageType = ?", cageType.IDCageType).Delete(&cageType).Error
+	err := db.connection.Where("id_cage_type = ?", cageType.IDCageType).Delete(&cageType).Error
 	return err
 }
 
@@ -44,14 +44,26 @@ func (db *cageTypeConnection) GetAllCageType(hotelID string, filterPagination dt
 	var total int64
 
 	var cageTypes []entity.CageType
-	query := db.connection
+	query := db.connection.Model(&cageTypes)
 
-	if search != "" {
-		keyword := strings.ToLower(search)
-		if keyword != "" {
-			query = query.Where("LOWER(cageTypes.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
+		if search != "" {
+			keyword := strings.ToLower(search)
+			if keyword != "" {
+				db.Where("LOWER(cageTypes.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+			}
 		}
-	}
+		return db
+	})
+
+	query.Where(whereClause).Scopes(func(db *gorm.DB) *gorm.DB {
+		if filterPagination.HotelID != "" {
+			db.Where("cage_types.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("cage_types.hotel_id = ?", hotelID)
+		}
+		return db
+	})
 
 	listSortBy := []string{"name"}
 	listSortOrder := []string{"desc", "asc"}
@@ -64,7 +76,7 @@ func (db *cageTypeConnection) GetAllCageType(hotelID string, filterPagination dt
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&cageTypes).Count(&total).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&cageTypes).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -87,15 +99,15 @@ func (db *cageTypeConnection) InsertCageType(cageType entity.CageType) (entity.C
 
 // UpdateCageType is func to edit cageType in database
 func (db *cageTypeConnection) UpdateCageType(cageType entity.CageType) (entity.CageType, error) {
-	err := db.connection.Where("id_cageType = ?", cageType.IDCageType).Updates(&cageType).Error
-	db.connection.Where("id_cageType = ?", cageType.IDCageType).Find(&cageType)
+	err := db.connection.Where("id_cage_type = ?", cageType.IDCageType).Updates(&cageType).Error
+	db.connection.Where("id_cage_type = ?", cageType.IDCageType).Find(&cageType)
 	return cageType, err
 }
 
 // FindCageTypeByID is func to get cageType by email
 func (db *cageTypeConnection) FindCageTypeByID(cageTypeID string) (entity.CageType, error) {
 	var cageType entity.CageType
-	err := db.connection.Where("id_cageType = ?", cageTypeID).Take(&cageType).Error
+	err := db.connection.Where("id_cage_type = ?", cageTypeID).Take(&cageType).Error
 	return cageType, err
 }
 

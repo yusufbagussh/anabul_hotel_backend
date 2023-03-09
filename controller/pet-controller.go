@@ -109,8 +109,8 @@ func (u *petController) DeletePet(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	token, _ := u.jwtService.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
-	hotelID := fmt.Sprintf("%v", claims["hotel_id"])
-	errDel, ok := u.petService.DeletePet(petID, hotelID)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	errDel, ok := u.petService.DeletePet(petID, userID)
 	if ok == false {
 		res := helper.BuildErrorResponse(
 			"You don't have permission",

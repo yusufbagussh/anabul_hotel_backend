@@ -1,13 +1,11 @@
 package dto
 
 type CreateSpecies struct {
-	Name       string `json:"name" form:"name" binding:"name"`
-	CategoryID string `json:"category_id" form:"category_id" binding:"category_id"`
-	HotelID    string `json:"hotel_id" form:"hotel_id" binding:"hotel_id"`
+	Name       string `json:"name" form:"name" binding:"required"`
+	CategoryID string `json:"category_id" form:"category_id" binding:"required"`
 }
 type UpdateSpecies struct {
-	IDSpecies  string `json:"id_species" form:"id_species" binding:"id_species"`
-	Name       string `json:"name" form:"name" binding:"name"`
-	CategoryID string `json:"category_id" form:"category_id" binding:"category_id"`
-	HotelID    string `json:"hotel_id" form:"hotel_id" binding:"hotel_id"`
+	IDSpecies  string `json:"id_species" form:"id_species" binding:"required"`
+	Name       string `json:"name" form:"name" binding:"required"`
+	CategoryID string `json:"category_id" form:"category_id" binding:"required"`
 }

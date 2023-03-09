@@ -19,9 +19,17 @@ func CageTypeSeeder(hotels *[]entity.Hotel) *[]entity.CageType {
 		Width:   100,
 		Height:  100,
 	}
+	cageType3 := entity.CageType{
+		HotelID: (*hotels)[0].IDHotel,
+		Name:    "Extra Large",
+		Length:  300,
+		Width:   200,
+		Height:  200,
+	}
 	cageCategories := []entity.CageType{
 		cageType1,
 		cageType2,
+		cageType3,
 	}
 	return &cageCategories
 }

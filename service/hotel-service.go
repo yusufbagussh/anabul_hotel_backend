@@ -95,7 +95,7 @@ func (u *hotelService) CreateHotelAdmin(hotel dto.CreateHotel, ctx *gin.Context)
 
 	if hotel.UserHotelCreateDTO.KTP != nil {
 		extension := filepath.Ext(hotel.UserHotelCreateDTO.KTP.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
-		newNIKFile := "NIK" + "_" + hotel.UserHotelCreateDTO.UserName + extension
+		newNIKFile := "NIK" + "_" + hotel.UserHotelCreateDTO.Name + extension
 		userEntity.KTP = newNIKFile
 
 		err := ctx.SaveUploadedFile(hotel.UserHotelCreateDTO.KTP, "uploads/user-profiles/"+newNIKFile)
@@ -104,8 +104,8 @@ func (u *hotelService) CreateHotelAdmin(hotel dto.CreateHotel, ctx *gin.Context)
 		}
 	}
 
-	userEntity.Name = hotel.UserHotelCreateDTO.UserName
-	userEntity.Email = hotel.UserHotelCreateDTO.UserEmail
+	userEntity.Name = hotel.UserHotelCreateDTO.Name
+	userEntity.Email = hotel.UserHotelCreateDTO.Email
 	userEntity.Password = hotel.UserHotelCreateDTO.Password
 	userEntity.Address = hotel.UserHotelCreateDTO.Address
 	userEntity.Phone = hotel.UserHotelCreateDTO.Phone
@@ -228,12 +228,15 @@ func (u *hotelService) UpdateHotel(hotel dto.UpdateHotel, ctx *gin.Context) (ent
 	hotelToUpdate.Phone = hotel.Phone
 	hotelToUpdate.ProvinceID = hotel.ProvinceID
 	hotelToUpdate.CityID = hotel.CityID
-	hotelToUpdate.CityID = hotel.CityID
 	hotelToUpdate.DistrictID = hotel.DistrictID
 	hotelToUpdate.Latitude = hotel.Latitude
 	hotelToUpdate.Longitude = hotel.Longitude
+	hotelToUpdate.MapLink = hotel.MapLink
 	hotelToUpdate.Requirement = hotel.Requirement
+	hotelToUpdate.Description = hotel.Description
 	hotelToUpdate.Regulation = hotel.Regulation
+	hotelToUpdate.OpenTime = hotel.OpenTime
+	hotelToUpdate.CloseTime = hotel.CloseTime
 
 	updatedHotel, err := u.hotelRepository.UpdateHotel(hotelToUpdate)
 	return updatedHotel, err

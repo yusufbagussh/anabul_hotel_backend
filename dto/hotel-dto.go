@@ -35,7 +35,10 @@ type UpdateHotel struct {
 	Document    *multipart.FileHeader `json:"document" form:"document"`
 	Latitude    float64               `json:"latitude" form:"latitude"`
 	Longitude   float64               `json:"longitude" form:"longitude"`
-	MapLink     float64               `json:"map_link" form:"map_link"`
+	MapLink     string                `json:"map_link" form:"map_link"`
 	Requirement string                `json:"requirement" form:"requirement"`
+	Description string                `json:"description" form:"description"`
 	Regulation  string                `json:"regulation" form:"regulation"`
+	OpenTime    string                `json:"open_time" form:"open_time"`
+	CloseTime   string                `json:"close_time" form:"close_time"`
 }

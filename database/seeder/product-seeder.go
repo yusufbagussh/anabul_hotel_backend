@@ -8,12 +8,14 @@ func ProductSeeder(hotels *[]entity.Hotel) *[]entity.Product {
 	product1 := entity.Product{
 		HotelID: (*hotels)[0].IDHotel,
 		Name:    "Whiskas",
-		Price:   33000,
+		Price:   20000,
+		Status:  "Tersedia",
 	}
 	product2 := entity.Product{
 		HotelID: (*hotels)[0].IDHotel,
 		Name:    "Bolt",
-		Price:   33000,
+		Price:   30000,
+		Status:  "Tersedia",
 	}
 	products := []entity.Product{
 		product1,

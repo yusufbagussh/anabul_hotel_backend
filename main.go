@@ -48,6 +48,7 @@ var (
 	reservationProductRepository   repository.ReservationProductRepository   = repository.NewReservationProductRepository(db)
 	reservationServiceRepository   repository.ReservationServiceRepository   = repository.NewReservationServiceRepository(db)
 	reservationInventoryRepository repository.ReservationInventoryRepository = repository.NewReservationInventoryRepository(db)
+	reservationConditionRepository repository.ReservationConditionRepository = repository.NewReservationConditionRepository(db)
 	rateRepository                 repository.RateRepository                 = repository.NewRateRepository(db)
 	responseRepository             repository.ResponseRepository             = repository.NewResponseRepository(db)
 	redisService                   service.RedisService                      = service.NewRedisService(cache)
@@ -78,6 +79,7 @@ var (
 	reservationServiceService      service.ReservationServiceService         = service.NewReservationServiceService(reservationServiceRepository)
 	reservationProductService      service.ReservationProductService         = service.NewReservationProductService(reservationProductRepository)
 	reservationInventoryService    service.ReservationInventoryService       = service.NewReservationInventoryService(reservationInventoryRepository)
+	reservationConditionService    service.ReservationConditionService       = service.NewReservationConditionService(reservationConditionRepository)
 	rateService                    service.RateService                       = service.NewRateService(rateRepository)
 	responseService                service.ResponseService                   = service.NewResponseService(responseRepository)
 	authController                 controller.AuthController                 = controller.NewAuthController(authService, jwtService, redisService)
@@ -105,6 +107,7 @@ var (
 	reservationServiceController   controller.ReservationServiceController   = controller.NewReservationServiceController(reservationServiceService, jwtService)
 	reservationProductController   controller.ReservationProductController   = controller.NewReservationProductController(reservationProductService, jwtService)
 	reservationInventoryController controller.ReservationInventoryController = controller.NewReservationInventoryController(reservationInventoryService, jwtService)
+	reservationConditionController controller.ReservationConditionController = controller.NewReservationConditionController(reservationConditionService, jwtService)
 	rateController                 controller.RateController                 = controller.NewRateController(rateService, jwtService)
 	responseController             controller.ResponseController             = controller.NewResponseController(responseService, jwtService)
 	Routes                         route.Route                               = route.NewRoute(
@@ -133,6 +136,7 @@ var (
 		reservationInventoryController,
 		reservationProductController,
 		reservationServiceController,
+		reservationConditionController,
 		rateController,
 		responseController,
 		jwtService,

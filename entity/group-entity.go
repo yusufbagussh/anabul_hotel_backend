@@ -6,7 +6,7 @@ import (
 )
 
 type Group struct {
-	IDGroup string `gorm:"primary_key;not null;type:varchar(36)" json:"id_category"`
+	IDGroup string `gorm:"primary_key;not null;type:varchar(36)" json:"id_group"`
 	Name    string `gorm:"type:varchar(100)" json:"name"`
 	HotelID string `json:"hotel_id" gorm:"type:varchar(36);not null"`
 	Base

@@ -28,7 +28,7 @@ func (db *provinceConnection) DeleteProvince(province entity.Province) error {
 }
 
 func (db *provinceConnection) GetAllProvince(filterPagination dto.FilterPagination) ([]entity.Province, dto.Pagination, error) {
-	var provincees []entity.Province
+	var provinces []entity.Province
 	search := filterPagination.Search
 	sortBy := filterPagination.SortBy
 	orderBy := filterPagination.OrderBy
@@ -47,7 +47,7 @@ func (db *provinceConnection) GetAllProvince(filterPagination dto.FilterPaginati
 		perPage = 10
 	}
 
-	query := "SELECT * FROM provincees"
+	query := "SELECT * FROM provinces"
 	if search != "" {
 		query = fmt.Sprintf("%s WHERE name LIKE '%%%s%%'", query, search)
 	}
@@ -57,7 +57,7 @@ func (db *provinceConnection) GetAllProvince(filterPagination dto.FilterPaginati
 
 	db.connection.Raw(query).Count(&total)
 	query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, perPage, (page-1)*perPage)
-	err := db.connection.Raw(query).Scan(&provincees).Error
+	err := db.connection.Raw(query).Scan(&provinces).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -68,7 +68,7 @@ func (db *provinceConnection) GetAllProvince(filterPagination dto.FilterPaginati
 		TotalPage: uint(math.Ceil(totalPage)),
 	}
 
-	return provincees, pagination, err
+	return provinces, pagination, err
 }
 
 // InsertProvince is to add province in database

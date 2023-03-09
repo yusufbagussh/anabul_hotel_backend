@@ -54,9 +54,9 @@ func (db *hotelConnection) GetAllHotel(filterPagination dto.FilterPagination) ([
 
 	var hotels []entity.Hotel
 
-	query := db.connection.Joins("JOIN provinces ON hotels.province_id = provinces.id_province").
-		Joins("JOIN cities ON hotels.city_id = cities.id_city").
-		Joins("JOIN districts ON hotels.district_id = districts.id_district")
+	query := db.connection.Model(&hotels).Joins("LEFT JOIN provinces ON hotels.province_id = provinces.id_province").
+		Joins("LEFT JOIN cities ON hotels.city_id = cities.id_city").
+		Joins("LEFT JOIN districts ON hotels.district_id = districts.id_district")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
@@ -95,9 +95,9 @@ func (db *hotelConnection) GetAllHotel(filterPagination dto.FilterPagination) ([
 		)
 	}
 
-	query.Find(&hotels).Count(&total)
+	//query.Find(&hotels).Count(&total)
 
-	err := query.Limit(perPage).Offset((page - 1) * perPage).
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).
 		Preload("Province").
 		Preload("City").
 		Preload("District").

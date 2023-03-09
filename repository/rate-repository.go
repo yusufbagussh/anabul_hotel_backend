@@ -44,7 +44,7 @@ func (db *rateConnection) GetAllRate(hotelID string, filterPagination dto.Filter
 	var total int64
 
 	var rates []entity.Rate
-	query := db.connection
+	query := db.connection.Model(&rates)
 
 	if search != "" {
 		keyword := strings.ToLower(search)
@@ -64,7 +64,7 @@ func (db *rateConnection) GetAllRate(hotelID string, filterPagination dto.Filter
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&rates).Count(&total).Error
+	err := query.Where("hotel_id = ?", hotelID).Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&rates).Error
 
 	totalPage := float64(total) / float64(perPage)
 

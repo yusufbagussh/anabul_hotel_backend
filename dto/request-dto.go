@@ -7,7 +7,7 @@ type CreateRequest struct {
 	HotelName  string                `json:"hotel_name" form:"hotel_name"`
 	HotelEmail string                `json:"hotel_email" form:"hotel_email"`
 	HotelPhone uint64                `json:"hotel_phone" form:"hotel_phone"`
-	NPWP       *multipart.FileHeader `json:"npwp" form:"npwp"`         //NPWP
+	NPWP       string                `json:"npwp" form:"npwp"`         //NPWP
 	Document   *multipart.FileHeader `json:"document" form:"document"` //SIUP,AKTA, NIB
 	AdminName  string                `json:"admin_name" form:"admin_name"`
 	AdminPhone uint64                `json:"phone" form:"admin_phone"`
@@ -33,5 +33,5 @@ type UpdateRequest struct {
 
 type UpdateRequestStatus struct {
 	IDRequest string `json:"id_request" form:"id_request" binding:"required"`
-	Status    string `json:"status" form:"status" binding:"request"`
+	Status    string `json:"status" form:"status" binding:"required"`
 }

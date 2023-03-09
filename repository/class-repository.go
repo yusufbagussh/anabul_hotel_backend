@@ -77,7 +77,7 @@ func (db *classConnection) GetAllClass(filterPagination dto.FilterPagination) ([
 	var total int64
 
 	var classes []entity.Class
-	query := db.connection
+	query := db.connection.Model(&classes)
 
 	if search != "" {
 		keyword := strings.ToLower(search)
@@ -97,10 +97,14 @@ func (db *classConnection) GetAllClass(filterPagination dto.FilterPagination) ([
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Limit(perPage).Offset((page - 1) * perPage).Find(&classes).Count(&total).Error
+	println(page)
+	println(perPage)
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Find(&classes).Error
 
+	println(total)
+	println(perPage)
 	totalPage := float64(total) / float64(perPage)
-
+	println(totalPage)
 	pagination := dto.Pagination{
 		Page:      uint(page),
 		PerPage:   uint(perPage),

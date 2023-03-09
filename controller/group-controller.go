@@ -51,10 +51,19 @@ func (u *groupController) CreateGroup(ctx *gin.Context) {
 }
 func (u *groupController) UpdateGroup(ctx *gin.Context) {
 	var UpdateGroup dto.UpdateGroup
+	errDTO := ctx.ShouldBind(&UpdateGroup)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
 	authHeader := ctx.GetHeader("Authorization")
 	token, _ := u.jwtService.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
 	hotelID := fmt.Sprintf("%v", claims["hotel_id"])
+	println(hotelID)
+	println(UpdateGroup.HotelID)
 	if UpdateGroup.HotelID != hotelID {
 		res := helper.BuildErrorResponse(
 			"You don't have permission",
@@ -62,12 +71,6 @@ func (u *groupController) UpdateGroup(ctx *gin.Context) {
 			helper.EmptyObj{},
 		)
 		ctx.JSON(http.StatusUnauthorized, res)
-		return
-	}
-	errDTO := ctx.ShouldBind(&UpdateGroup)
-	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 	result, errCreate := u.groupService.UpdateGroup(UpdateGroup)

@@ -24,7 +24,7 @@ type cageCategoryConnection struct {
 }
 
 func (db *cageCategoryConnection) DeleteCageCategory(cageCategory entity.CageCategory) error {
-	err := db.connection.Where("id_cageCategory = ?", cageCategory.IDCageCategory).Delete(&cageCategory).Error
+	err := db.connection.Where("id_cage_category = ?", cageCategory.IDCageCategory).Delete(&cageCategory).Error
 	return err
 }
 
@@ -43,15 +43,27 @@ func (db *cageCategoryConnection) GetAllCageCategory(hotelID string, filterPagin
 	}
 	var total int64
 
-	var cageCategorys []entity.CageCategory
-	query := db.connection
+	var cageCategories []entity.CageCategory
+	query := db.connection.Model(&cageCategories)
 
-	if search != "" {
-		keyword := strings.ToLower(search)
-		if keyword != "" {
-			query = query.Where("LOWER(cageCategorys.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
+		if search != "" {
+			keyword := strings.ToLower(search)
+			if keyword != "" {
+				db.Where("LOWER(cage_categories.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+			}
 		}
-	}
+		return db
+	})
+
+	query.Where(whereClause).Scopes(func(db *gorm.DB) *gorm.DB {
+		if filterPagination.HotelID != "" {
+			db.Where("cage_categories.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("cage_categories.hotel_id = ?", hotelID)
+		}
+		return db
+	})
 
 	listSortBy := []string{"name"}
 	listSortOrder := []string{"desc", "asc"}
@@ -64,7 +76,7 @@ func (db *cageCategoryConnection) GetAllCageCategory(hotelID string, filterPagin
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&cageCategorys).Count(&total).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&cageCategories).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -75,7 +87,7 @@ func (db *cageCategoryConnection) GetAllCageCategory(hotelID string, filterPagin
 		TotalPage: uint(math.Ceil(totalPage)),
 	}
 
-	return cageCategorys, pagination, err
+	return cageCategories, pagination, err
 }
 
 // InsertCageCategory is to add cageCategory in database
@@ -87,15 +99,15 @@ func (db *cageCategoryConnection) InsertCageCategory(cageCategory entity.CageCat
 
 // UpdateCageCategory is func to edit cageCategory in database
 func (db *cageCategoryConnection) UpdateCageCategory(cageCategory entity.CageCategory) (entity.CageCategory, error) {
-	err := db.connection.Where("id_cageCategory = ?", cageCategory.IDCageCategory).Updates(&cageCategory).Error
-	db.connection.Where("id_cageCategory = ?", cageCategory.IDCageCategory).Find(&cageCategory)
+	err := db.connection.Where("id_cage_category = ?", cageCategory.IDCageCategory).Updates(&cageCategory).Error
+	db.connection.Where("id_cage_category = ?", cageCategory.IDCageCategory).Find(&cageCategory)
 	return cageCategory, err
 }
 
 // FindCageCategoryByID is func to get cageCategory by email
 func (db *cageCategoryConnection) FindCageCategoryByID(cageCategoryID string) (entity.CageCategory, error) {
 	var cageCategory entity.CageCategory
-	err := db.connection.Where("id_cageCategory = ?", cageCategoryID).Take(&cageCategory).Error
+	err := db.connection.Where("id_cage_category = ?", cageCategoryID).Take(&cageCategory).Error
 	return cageCategory, err
 }
 

@@ -125,16 +125,16 @@ func (u *requestService) CreateRequest(request dto.CreateRequest, ctx *gin.Conte
 			return requestEntity, err
 		}
 	}
-	if request.NPWP != nil {
-		extension := filepath.Ext(request.NPWP.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
-		newNPWP := "NPWP" + "_" + request.HotelName + extension
-		requestEntity.NPWP = newNPWP
-
-		err = ctx.SaveUploadedFile(request.NPWP, "uploads/documents/"+request.HotelName+"/"+newNPWP)
-		if err != nil {
-			return requestEntity, err
-		}
-	}
+	//if request.NPWP != nil {
+	//	extension := filepath.Ext(request.NPWP.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
+	//	newNPWP := "NPWP" + "_" + request.HotelName + extension
+	//	requestEntity.NPWP = newNPWP
+	//
+	//	err = ctx.SaveUploadedFile(request.NPWP, "uploads/documents/"+request.HotelName+"/"+newNPWP)
+	//	if err != nil {
+	//		return requestEntity, err
+	//	}
+	//}
 	if request.KTP != nil {
 		extension := filepath.Ext(request.KTP.Filename) // Generate random file name for the new uploaded file, so it doesn't override the old file with same name
 		newKTP := "KTP" + "_" + request.HotelName + extension
@@ -156,6 +156,7 @@ func (u *requestService) CreateRequest(request dto.CreateRequest, ctx *gin.Conte
 		}
 	}
 
+	requestEntity.NPWP = request.NPWP
 	requestEntity.HotelName = request.HotelName
 	requestEntity.HotelPhone = request.HotelPhone
 	requestEntity.HotelEmail = request.HotelEmail

@@ -51,6 +51,13 @@ func (u *cageCategoryController) CreateCageCategory(ctx *gin.Context) {
 }
 func (u *cageCategoryController) UpdateCageCategory(ctx *gin.Context) {
 	var UpdateCageCategory dto.UpdateCageCategory
+	errDTO := ctx.ShouldBind(&UpdateCageCategory)
+	if errDTO != nil {
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
 	authHeader := ctx.GetHeader("Authorization")
 	token, _ := u.jwtService.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
@@ -62,12 +69,6 @@ func (u *cageCategoryController) UpdateCageCategory(ctx *gin.Context) {
 			helper.EmptyObj{},
 		)
 		ctx.JSON(http.StatusUnauthorized, res)
-		return
-	}
-	errDTO := ctx.ShouldBind(&UpdateCageCategory)
-	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 	result, errCreate := u.cageCategoryService.UpdateCageCategory(UpdateCageCategory)

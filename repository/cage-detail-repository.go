@@ -25,13 +25,13 @@ type cageDetailConnection struct {
 }
 
 func (db *cageDetailConnection) DeleteCageDetail(cageDetail entity.CageDetail) error {
-	err := db.connection.Where("id_cageDetail = ?", cageDetail.IDCageDetail).Delete(&cageDetail).Error
+	err := db.connection.Where("id_cage_detail = ?", cageDetail.IDCageDetail).Delete(&cageDetail).Error
 	return err
 }
 
 func (db *cageDetailConnection) UpdateCageDetailStatus(productStatus dto.UpdateCageDetailStatus) (entity.CageDetail, error) {
 	var cageDetail entity.CageDetail
-	err := db.connection.Model(&cageDetail).Where("id_reservation = ?", productStatus.IDCageDetail).Updates(&entity.CageDetail{Status: productStatus.Status}).Error
+	err := db.connection.Model(&cageDetail).Where("id_cage_detail = ?", productStatus.IDCageDetail).Updates(&entity.CageDetail{Status: productStatus.Status}).Error
 	db.connection.Find(&cageDetail)
 	return cageDetail, err
 }
@@ -52,8 +52,8 @@ func (db *cageDetailConnection) GetAllCageDetail(hotelID string, filterPaginatio
 	var total int64
 
 	var cageDetails []entity.CageDetail
-	query := db.connection.Joins("JOIN cage_categories ON cage_details.cage_category_id = cage_categories.id_cage_category").
-		Joins("JOIN cage_types ON cage_details.cage_type_id = cage_types.id_cage_type")
+	query := db.connection.Model(&cageDetails).Joins("LEFT JOIN cage_categories ON cage_details.cage_category_id = cage_categories.id_cage_category").
+		Joins("LEFT JOIN cage_types ON cage_details.cage_type_id = cage_types.id_cage_type")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
@@ -73,6 +73,11 @@ func (db *cageDetailConnection) GetAllCageDetail(hotelID string, filterPaginatio
 		if filterPagination.CageTypeID != "" {
 			db.Where("cage_details.cage_type_id = ?", filterPagination.CageTypeID)
 		}
+		if filterPagination.HotelID != "" {
+			db.Where("cage_details.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("cage_details.hotel_id = ?", hotelID)
+		}
 		return db
 	})
 
@@ -87,7 +92,7 @@ func (db *cageDetailConnection) GetAllCageDetail(hotelID string, filterPaginatio
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).
 		Preload("CageCategory").
 		Preload("CageType").
 		Preload("Hotel").
@@ -114,15 +119,15 @@ func (db *cageDetailConnection) InsertCageDetail(cageDetail entity.CageDetail) (
 
 // UpdateCageDetail is func to edit cageDetail in database
 func (db *cageDetailConnection) UpdateCageDetail(cageDetail entity.CageDetail) (entity.CageDetail, error) {
-	err := db.connection.Where("id_cageDetail = ?", cageDetail.IDCageDetail).Updates(&cageDetail).Error
-	db.connection.Where("id_cageDetail = ?", cageDetail.IDCageDetail).Find(&cageDetail)
+	err := db.connection.Where("id_cage_detail = ?", cageDetail.IDCageDetail).Updates(&cageDetail).Error
+	db.connection.Where("id_cage_detail = ?", cageDetail.IDCageDetail).Find(&cageDetail)
 	return cageDetail, err
 }
 
 // FindCageDetailByID is func to get cageDetail by email
 func (db *cageDetailConnection) FindCageDetailByID(cageDetailID string) (entity.CageDetail, error) {
 	var cageDetail entity.CageDetail
-	err := db.connection.Where("id_cageDetail = ?", cageDetailID).Take(&cageDetail).Error
+	err := db.connection.Where("id_cage_detail = ?", cageDetailID).Take(&cageDetail).Error
 	return cageDetail, err
 }
 

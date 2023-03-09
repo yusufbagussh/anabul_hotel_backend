@@ -8,6 +8,7 @@ import (
 	"github.com/yusufbagussh/pet_hotel_backend/repository"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // PetService is a contract of what petService can do
@@ -46,7 +47,10 @@ func (u *petService) CreatePet(pet dto.CreatePet, ctx *gin.Context) (entity.Pet,
 	petToCreate.Name = pet.Name
 	petToCreate.SpeciesID = pet.SpeciesID
 	petToCreate.FavoriteFood = pet.FavoriteFood
-	petToCreate.BirthDate = pet.BirthDate
+	layout := "2006-01-02 15:04:05"
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	birthDate, _ := time.ParseInLocation(layout, pet.BirthDate, loc)
+	petToCreate.BirthDate = birthDate
 	petToCreate.Gender = pet.Gender
 	petToCreate.UserID = pet.UserID
 	updatedPet, err := u.petRepository.InsertPet(petToCreate)
@@ -76,7 +80,10 @@ func (u *petService) UpdatePet(pet dto.UpdatePet, ctx *gin.Context) (entity.Pet,
 	petToUpdate.Name = pet.Name
 	petToUpdate.SpeciesID = pet.SpeciesID
 	petToUpdate.FavoriteFood = pet.FavoriteFood
-	petToUpdate.BirthDate = pet.BirthDate
+	layout := "2006-01-02 15:04:05"
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	birthDate, _ := time.ParseInLocation(layout, pet.BirthDate, loc)
+	petToUpdate.BirthDate = birthDate
 	petToUpdate.Gender = pet.Gender
 	petToUpdate.UserID = pet.UserID
 	updatedPet, err := u.petRepository.UpdatePet(petToUpdate)

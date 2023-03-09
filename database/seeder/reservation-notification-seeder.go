@@ -4,7 +4,7 @@ import (
 	"github.com/yusufbagussh/pet_hotel_backend/entity"
 )
 
-func ReservationConditionSeeder(reserDetails *[]entity.ReservationDetail, users *[]entity.User) *[]entity.ReservationCondition {
+func ReservationNotificationSeeder(reserDetails *[]entity.ReservationDetail, users *[]entity.User) *[]entity.ReservationCondition {
 	reservationCondition1 := entity.ReservationCondition{
 		ReservationDetailID: (*reserDetails)[0].IDReservationDetail,
 		//Status:              "Sudah",

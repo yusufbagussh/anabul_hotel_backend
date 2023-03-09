@@ -45,7 +45,7 @@ func (db *categoryConnection) GetAllCategory(filterPagination dto.FilterPaginati
 	page := int(filterPagination.Page)
 
 	var categories []entity.Category
-	query := db.connection.Joins("JOIN classes ON categories.class_id = classes.id_class").
+	query := db.connection.Model(&categories).Joins("LEFT JOIN classes ON categories.class_id = classes.id_class").
 		Select("categories.id_category, categories.name, categories.class_id, categories.created_at, categories.updated_at, classes.id_class, classes.name as class_name")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
@@ -84,9 +84,9 @@ func (db *categoryConnection) GetAllCategory(filterPagination dto.FilterPaginati
 	if perPage == 0 {
 		perPage = 10
 	}
-	query.Find(&categories).Count(&total)
+	//query.Find(&categories).Count(&total)
 
-	err := query.Limit(perPage).Offset((page - 1) * perPage).Preload("Class").Find(&categories).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Class").Find(&categories).Error
 
 	totalPage := float64(total) / float64(perPage)
 

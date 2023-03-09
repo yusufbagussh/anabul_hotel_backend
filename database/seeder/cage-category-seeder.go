@@ -7,11 +7,11 @@ import (
 func CageCategorySeeder(hotels *[]entity.Hotel) *[]entity.CageCategory {
 	cageCategory1 := entity.CageCategory{
 		HotelID: (*hotels)[0].IDHotel,
-		Name:    "Elite",
+		Name:    "AC",
 	}
 	cageCategory2 := entity.CageCategory{
 		HotelID: (*hotels)[0].IDHotel,
-		Name:    "Premium",
+		Name:    "Non-AC",
 	}
 	cageCategories := []entity.CageCategory{
 		cageCategory1,

@@ -29,9 +29,9 @@ func (db *requestConnection) DeleteRequest(request entity.Request) error {
 	return err
 }
 
-func (db *requestConnection) UpdateRequestStatus(productStatus dto.UpdateRequestStatus) (entity.Request, error) {
+func (db *requestConnection) UpdateRequestStatus(requestStatus dto.UpdateRequestStatus) (entity.Request, error) {
 	var request entity.Request
-	err := db.connection.Model(&request).Where("id_reservation = ?", productStatus.IDRequest).Updates(&entity.Request{Status: productStatus.Status}).Error
+	err := db.connection.Model(&request).Where("id_request = ?", requestStatus.IDRequest).Updates(&entity.Request{Status: requestStatus.Status}).Error
 	db.connection.Find(&request)
 	return request, err
 }
@@ -52,7 +52,7 @@ func (db *requestConnection) GetAllRequest(filterPagination dto.FilterPagination
 	var total int64
 
 	var requests []entity.Request
-	query := db.connection
+	query := db.connection.Model(&requests)
 
 	if search != "" {
 		keyword := strings.ToLower(search)
@@ -73,7 +73,7 @@ func (db *requestConnection) GetAllRequest(filterPagination dto.FilterPagination
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Limit(perPage).Offset((page - 1) * perPage).Find(&requests).Count(&total).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Find(&requests).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -130,7 +130,7 @@ func (db *requestConnection) GetAllRequest(filterPagination dto.FilterPagination
 
 // InsertRequest is to add request in database
 func (db *requestConnection) InsertRequest(request entity.Request) (entity.Request, error) {
-	err := db.connection.Save(&request).Error
+	err := db.connection.Create(&request).Error
 	return request, err
 }
 

@@ -61,7 +61,7 @@ func (db *userConnection) AllAdmin(filterPagination dto.FilterPagination) ([]ent
 	}
 
 	var admins []entity.User
-	query := db.connection.Joins("JOIN hotels ON user.hotel_id=hotels.id_hotel")
+	query := db.connection.Model(admins).Joins("LEFT JOIN hotels ON users.hotel_id=hotels.id_hotel")
 
 	if search != "" {
 		keyword := strings.ToLower(search)
@@ -84,7 +84,7 @@ func (db *userConnection) AllAdmin(filterPagination dto.FilterPagination) ([]ent
 
 	var total int64
 
-	err := query.Where("role = ?", "Admin").Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&admins).Count(&total).Error
+	err := query.Where("role = ?", "Admin").Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&admins).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -106,7 +106,7 @@ func (db *userConnection) AllStaff(hotelID string, filterPagination dto.FilterPa
 	page := int(filterPagination.Page)
 
 	var staffs []entity.User
-	query := db.connection
+	query := db.connection.Model(&staffs)
 
 	if search != "" {
 		keyword := strings.ToLower(search)
@@ -134,7 +134,7 @@ func (db *userConnection) AllStaff(hotelID string, filterPagination dto.FilterPa
 	}
 	var total int64
 
-	err := query.Where("role = ?", "Staff").Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&staffs).Count(&total).Error
+	err := query.Where("role = ?", "Staff").Where("hotel_id = ?", hotelID).Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Hotel").Find(&staffs).Error
 
 	totalPage := float64(total) / float64(perPage)
 

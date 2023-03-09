@@ -9,14 +9,14 @@ func GroupDetailSeeder(groups *[]entity.Group, species *[]entity.Species, hotels
 		GroupID:   (*groups)[0].IDGroup,
 		SpeciesID: (*species)[0].IDSpecies,
 		MaxWeight: 10,
-		MinWeight: 5,
+		MinWeight: 1,
 		HotelID:   (*hotels)[0].IDHotel,
 	}
 	groupDetail2 := entity.GroupDetail{
-		GroupID:   (*groups)[0].IDGroup,
+		GroupID:   (*groups)[1].IDGroup,
 		SpeciesID: (*species)[1].IDSpecies,
-		MaxWeight: 10,
-		MinWeight: 5,
+		MaxWeight: 11,
+		MinWeight: 20,
 		HotelID:   (*hotels)[0].IDHotel,
 	}
 	groupDetails := []entity.GroupDetail{

@@ -35,29 +35,28 @@ func (db *cityConnection) GetAllCity(filterPagination dto.FilterPagination) ([]e
 	perPage := int(filterPagination.PerPage)
 	page := int(filterPagination.Page)
 
-	var categories []entity.City
-	query := db.connection.Joins("JOIN classes ON categories.class_id = classes.id_class").
-		Select("categories.id_city, categories.name, categories.class_id, categories.created_at, categories.updated_at, classes.id_class, classes.name as class_name")
+	var cities []entity.City
+	query := db.connection.Model(&cities).Joins("LEFT JOIN provinces ON cities.province_id = provinces.id_province")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
 			keyword := strings.ToLower(search)
 			if keyword != "" {
-				db.Where("LOWER(categories.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword)).
-					Or("LOWER(classes.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+				db.Where("LOWER(cities.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword)).
+					Or("LOWER(provinces.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
 			}
 		}
 		return db
 	})
 
 	query.Where(whereClause).Scopes(func(db *gorm.DB) *gorm.DB {
-		if filterPagination.ClassID != "" {
-			db.Where("categories.class_id = ?", filterPagination.ClassID)
+		if filterPagination.ProvinceID != "" {
+			db.Where("classes.province_id = ?", filterPagination.ProvinceID)
 		}
 		return db
 	})
 
-	listSortBy := []string{"name", "class_name"}
+	listSortBy := []string{"name"}
 	listSortOrder := []string{"desc", "asc"}
 
 	if sortBy != "" && contains(listSortBy, sortBy) == true && orderBy != "" && contains(listSortOrder, orderBy) {
@@ -75,9 +74,9 @@ func (db *cityConnection) GetAllCity(filterPagination dto.FilterPagination) ([]e
 	if perPage == 0 {
 		perPage = 10
 	}
-	query.Find(&categories).Count(&total)
+	//query.Find(&cities).Count(&total)
 
-	err := query.Limit(perPage).Offset((page - 1) * perPage).Preload("Class").Find(&categories).Error
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).Preload("Province").Find(&cities).Error
 
 	totalPage := float64(total) / float64(perPage)
 
@@ -88,28 +87,28 @@ func (db *cityConnection) GetAllCity(filterPagination dto.FilterPagination) ([]e
 		TotalPage: uint(math.Ceil(totalPage)),
 	}
 
-	//err := db.connection.Find(&categories).Error
-	return categories, pagination, err
+	//err := db.connection.Find(&cities).Error
+	return cities, pagination, err
 }
 
 // InsertCity is to add city in database
 func (db *cityConnection) InsertCity(city entity.City) (entity.City, error) {
 	err := db.connection.Save(&city).Error
-	db.connection.Preload("Class").Find(&city)
+	db.connection.Preload("Province").Find(&city)
 	return city, err
 }
 
 // UpdateCity is func to edit city in database
 func (db *cityConnection) UpdateCity(city entity.City) (entity.City, error) {
 	err := db.connection.Where("id_city = ?", city.IDCity).Updates(&city).Error
-	db.connection.Where("id_city = ?", city.IDCity).Preload("Class").Find(&city)
+	db.connection.Where("id_city = ?", city.IDCity).Preload("Province").Find(&city)
 	return city, err
 }
 
 // FindCityByID is func to get city by email
 func (db *cityConnection) FindCityByID(cityID string) (entity.City, error) {
 	var city entity.City
-	err := db.connection.Where("id_city = ?", cityID).Preload("Class").Take(&city).Error
+	err := db.connection.Where("id_city = ?", cityID).Preload("Province").Take(&city).Error
 	return city, err
 }
 

@@ -38,6 +38,8 @@ func HotelSeeder(province *[]entity.Province, city *[]entity.City, district *[]e
 		ProvinceID: (*province)[0].IDProvince,
 		CityID:     (*city)[0].IDCity,
 		DistrictID: (*district)[0].IDDistrict,
+		NPWP:       "NPWP_Pet Hotel Indonesia.jpg",
+		Document:   "Document_Pet Hotel Indonesia.jpg",
 	}
 	hotels := []entity.Hotel{
 		hotel1,

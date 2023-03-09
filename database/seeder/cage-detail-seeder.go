@@ -19,8 +19,7 @@ func CageDetailSeeder(categories *[]entity.CageCategory, types *[]entity.CageTyp
 		HotelID:        (*hotels)[0].IDHotel,
 		Quantity:       10,
 		Status:         "Tersedia",
-
-		Price: 200000,
+		Price:          200000,
 	}
 	cageDetails := []entity.CageDetail{
 		cageDetail1,

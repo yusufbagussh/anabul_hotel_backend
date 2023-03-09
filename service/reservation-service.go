@@ -89,7 +89,7 @@ func (u *reservationService) UpdateReservationStatus(reservationStatus dto.Updat
 		createNotification.Description = "Reservasi anda sudah kami terima, anda sudah bisa membawa hewan peliharaan anda ke tempat penitipan kami"
 	} else if updatedReservation.ReservationStatus == "Ditolak" {
 		createNotification.Description = "Mohon maaf reservasi anda kami tolak, karena tidak memenuhi syarat dan peraturan dari tempat penitipan kami"
-	} else {
+	} else if updatedReservation.ReservationStatus == "Dibatalkan" {
 		createNotification.Description = "Anda telah membatalkan layanan reservasi."
 	}
 	createNotification.UserID = updatedReservation.UserID

@@ -44,9 +44,9 @@ func (db *cageConnection) GetAllCage(hotelID string, filterPagination dto.Filter
 	var total int64
 
 	var cages []entity.Cage
-	query := db.connection.Joins("JOIN cage_details ON cages.cage_detail_id = cage_details.id_cage_detail").
-		Joins("JOIN cage_categories ON cage_details.cage_category_id = cage_categories.id_cage_category").
-		Joins("JOIN cage_types ON cage_details.cage_type_id = cage_types.id_cage_type")
+	query := db.connection.Model(&cages).Joins("LEFT JOIN cage_details ON cages.cage_detail_id = cage_details.id_cage_detail").
+		Joins("LEFT JOIN cage_categories ON cage_details.cage_category_id = cage_categories.id_cage_category").
+		Joins("LEFT JOIN cage_types ON cage_details.cage_type_id = cage_types.id_cage_type")
 
 	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
 		if search != "" {
@@ -70,6 +70,11 @@ func (db *cageConnection) GetAllCage(hotelID string, filterPagination dto.Filter
 		if filterPagination.CageTypeID != "" {
 			db.Where("cage_details.cage_type_id = ?", filterPagination.CageTypeID)
 		}
+		if filterPagination.HotelID != "" {
+			db.Where("cages.hotel_id = ?", filterPagination.HotelID)
+		} else {
+			db.Where("cages.hotel_id = ?", hotelID)
+		}
 		return db
 	})
 
@@ -84,12 +89,14 @@ func (db *cageConnection) GetAllCage(hotelID string, filterPagination dto.Filter
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).
 		Preload("CageDetail").
-		Preload("CageCategory").
-		Preload("CageType").
+		//Preload("CageCategory").
+		//Preload("CageCategory.CageDetail").
+		//Preload("CageType").
+		//Preload("CageType.CageDetail").
 		Preload("Hotel").
-		Find(&cages).Count(&total).Error
+		Find(&cages).Error
 
 	totalPage := float64(total) / float64(perPage)
 

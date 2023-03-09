@@ -42,15 +42,16 @@ func (db *reservationConnection) UpdatePaymentStatus(paymentStatus dto.UpdatePay
 	db.connection.Find(&reservation)
 	return reservation, err
 }
-func (db *reservationConnection) UpdateReservationStatus(paymentStatus dto.UpdateReservationStatus) (entity.Reservation, error) {
+func (db *reservationConnection) UpdateReservationStatus(reservationStatus dto.UpdateReservationStatus) (entity.Reservation, error) {
 	var reservation entity.Reservation
-	err := db.connection.Model(&reservation).Where("reservation_id = ?", paymentStatus.IDReservation).Updates(&entity.Reservation{ReservationStatus: reservation.ReservationStatus}).Error
+	fmt.Println(reservationStatus.ReservationStatus)
+	err := db.connection.Model(&reservation).Where("id_reservation = ?", reservationStatus.IDReservation).Updates(&entity.Reservation{ReservationStatus: reservationStatus.ReservationStatus}).Error
 	db.connection.Find(&reservation)
 	return reservation, err
 }
-func (db *reservationConnection) UpdateCheckInStatus(paymentStatus dto.UpdateCheckInStatus) (entity.Reservation, error) {
+func (db *reservationConnection) UpdateCheckInStatus(checkinStatus dto.UpdateCheckInStatus) (entity.Reservation, error) {
 	var reservation entity.Reservation
-	err := db.connection.Model(&reservation).Where("reservation_id = ?", paymentStatus.IDReservation).Updates(&entity.Reservation{CheckInStatus: reservation.CheckInStatus}).Error
+	err := db.connection.Model(&reservation).Where("id_reservation = ?", checkinStatus.IDReservation).Updates(&entity.Reservation{CheckInStatus: checkinStatus.CheckInStatus}).Error
 	db.connection.Find(&reservation)
 	return reservation, err
 }
@@ -116,14 +117,26 @@ func (db *reservationConnection) GetAllReservation(hotelID string, filterPaginat
 	var total int64
 
 	var reservations []entity.Reservation
-	query := db.connection
+	query := db.connection.Model(&reservations)
 
-	if search != "" {
-		keyword := strings.ToLower(search)
-		if keyword != "" {
-			query = query.Where("LOWER(reservations.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+	whereClause := db.connection.Scopes(func(db *gorm.DB) *gorm.DB {
+		if search != "" {
+			keyword := strings.ToLower(search)
+			if keyword != "" {
+				query = query.Where("LOWER(reservations.name) LIKE ?", fmt.Sprintf("%%%s%%", keyword))
+			}
 		}
-	}
+		return db
+	})
+
+	query.Where(whereClause).Scopes(func(db *gorm.DB) *gorm.DB {
+		if filterPagination.UserID != "" {
+			db.Where("reservations.user_id = ?", filterPagination.UserID)
+		} else {
+			db.Where("reservations.hotel_id = ?", hotelID)
+		}
+		return db
+	})
 
 	listSortBy := []string{"name"}
 	listSortOrder := []string{"desc", "asc"}
@@ -136,11 +149,13 @@ func (db *reservationConnection) GetAllReservation(hotelID string, filterPaginat
 		query = query.Order(fmt.Sprintf("%s %s", sortBy, orderBy))
 	}
 
-	err := query.Where("hotel_id = ?", hotelID).Limit(perPage).Offset((page - 1) * perPage).
+	err := query.Count(&total).Limit(perPage).Offset((page - 1) * perPage).
 		Preload("Hotel").
 		Preload("User").
-		Preload("ReservationDetails").
-		Preload("ReservationDetails.Reservation").
+		Preload("ReservationDetails.ReservationServices").
+		Preload("ReservationDetails.ReservationProducts").
+		Preload("ReservationDetails.ReservationInventories").
+		//Preload("ReservationDetails.Reservation").
 		Preload("Rate").
 		Find(&reservations).
 		Count(&total).
@@ -253,8 +268,8 @@ func (db *reservationConnection) UpdateReservation(reservation entity.Reservatio
 // FindReservationByID is func to get reservation by email
 func (db *reservationConnection) FindReservationByID(reservationID string) (entity.Reservation, error) {
 	var reservation entity.Reservation
-	err := db.connection.
-		Joins("JOIN reservation_details ON reservations.id_reservation=reservation_details.reservation_id").
+	err := db.connection.Model(&reservation).
+		Joins("LEFT JOIN reservation_details ON reservations.id_reservation=reservation_details.reservation_id").
 		//Joins("JOIN reservation_services ON reservation_details.id_reservation_detail=reservation_services.reservation_detail_id").
 		//Joins("JOIN reservation_inventories ON reservation_details.id_reservation_detail=reservation_inventories.reservation_detail_id").
 		Where("id_reservation = ?", reservationID).
